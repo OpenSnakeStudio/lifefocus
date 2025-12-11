@@ -7,11 +7,13 @@ import { HabitCard } from '@/components/HabitCard';
 import { HabitDialog } from '@/components/HabitDialog';
 import { StatsHeader } from '@/components/StatsHeader';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { ViewTabs, ViewType } from '@/components/ViewTabs';
 import { CalendarView } from '@/components/CalendarView';
 import { ProgressView } from '@/components/ProgressView';
 import { ShareButtons } from '@/components/ShareButtons';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/contexts/LanguageContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +31,7 @@ const Index = () => {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteConfirmHabit, setDeleteConfirmHabit] = useState<Habit | null>(null);
   const [activeView, setActiveView] = useState<ViewType>('habits');
+  const { t } = useTranslation();
 
   const handleSaveHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'streak'>) => {
     if (editingHabit) {
@@ -55,6 +58,14 @@ const Index = () => {
     }
   };
 
+  const handleWeekClick = () => {
+    setActiveView('calendar');
+  };
+
+  const handleHabitsClick = () => {
+    setActiveView('progress');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -68,13 +79,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
-        {/* Header with theme toggle and share buttons */}
+        {/* Header with theme toggle, language selector and share buttons */}
         <div className="flex items-center justify-between mb-4">
           <ShareButtons />
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <LanguageSelector />
+            <ThemeToggle />
+          </div>
         </div>
 
-        <StatsHeader habits={habits} />
+        <StatsHeader 
+          habits={habits} 
+          onWeekClick={handleWeekClick}
+          onHabitsClick={handleHabitsClick}
+        />
 
         {/* View Tabs */}
         <div className="mt-6">
@@ -92,7 +110,7 @@ const Index = () => {
                 exit={{ opacity: 0, x: 10 }}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">Мои привычки</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t('myHabits')}</h2>
                   <span className="text-sm text-muted-foreground">{habits.length}</span>
                 </div>
 
@@ -107,17 +125,17 @@ const Index = () => {
                         <Sparkles className="w-10 h-10 text-primary" />
                       </div>
                       <h3 className="text-lg font-medium text-foreground mb-2">
-                        Начните формировать привычки
+                        {t('startBuilding')}
                       </h3>
                       <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-                        Создайте свою первую привычку и начните путь к лучшей версии себя
+                        {t('createFirst')}
                       </p>
                       <Button 
                         onClick={() => setDialogOpen(true)}
                         className="gradient-primary text-primary-foreground"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Создать привычку
+                        {t('createHabit')}
                       </Button>
                     </motion.div>
                   ) : (
@@ -145,7 +163,11 @@ const Index = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
               >
-                <CalendarView habits={habits} />
+                <CalendarView 
+                  habits={habits} 
+                  onToggle={toggleHabitCompletion}
+                  initialPeriod="7"
+                />
               </motion.div>
             )}
 
@@ -156,7 +178,7 @@ const Index = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
               >
-                <ProgressView habits={habits} />
+                <ProgressView habits={habits} initialPeriod="7" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -198,15 +220,15 @@ const Index = () => {
       <AlertDialog open={!!deleteConfirmHabit} onOpenChange={() => setDeleteConfirmHabit(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить привычку?</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteHabit')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Привычка "{deleteConfirmHabit?.name}" будет удалена вместе со всей историей. Это действие нельзя отменить.
+              {t('deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Удалить
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

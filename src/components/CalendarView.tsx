@@ -1,17 +1,23 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format, subDays, eachDayOfInterval, isSameDay } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { ru, enUS, es } from 'date-fns/locale';
 import { Habit } from '@/types/habit';
 import { PeriodSelector, Period } from './PeriodSelector';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface CalendarViewProps {
   habits: Habit[];
+  onToggle: (habitId: string, date: string) => void;
+  initialPeriod?: Period;
 }
 
-export function CalendarView({ habits }: CalendarViewProps) {
-  const [period, setPeriod] = useState<Period>('7');
+export function CalendarView({ habits, onToggle, initialPeriod = '7' }: CalendarViewProps) {
+  const [period, setPeriod] = useState<Period>(initialPeriod);
+  const { t, language } = useTranslation();
+
+  const locale = language === 'ru' ? ru : language === 'es' ? es : enUS;
 
   const days = useMemo(() => {
     const today = new Date();
@@ -25,6 +31,11 @@ export function CalendarView({ habits }: CalendarViewProps) {
   const getCompletionForDay = (habit: Habit, date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return habit.completedDates.includes(dateStr);
+  };
+
+  const handleToggle = (habitId: string, date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    onToggle(habitId, dateStr);
   };
 
   return (
@@ -42,7 +53,7 @@ export function CalendarView({ habits }: CalendarViewProps) {
           <thead>
             <tr>
               <th className="text-left text-sm font-medium text-muted-foreground pb-3 pr-4 min-w-[120px]">
-                Привычка
+                {t('habit')}
               </th>
               {days.map((day) => (
                 <th
@@ -53,7 +64,7 @@ export function CalendarView({ habits }: CalendarViewProps) {
                   )}
                 >
                   <div>{format(day, 'd')}</div>
-                  <div className="text-[10px]">{format(day, 'EEE', { locale: ru })}</div>
+                  <div className="text-[10px]">{format(day, 'EEE', { locale })}</div>
                 </th>
               ))}
             </tr>
@@ -74,18 +85,20 @@ export function CalendarView({ habits }: CalendarViewProps) {
                   const isToday = isSameDay(day, new Date());
                   return (
                     <td key={day.toISOString()} className="py-2 px-1 text-center">
-                      <div
+                      <button
+                        onClick={() => handleToggle(habit.id, day)}
                         className={cn(
-                          "w-6 h-6 mx-auto rounded-full flex items-center justify-center transition-colors",
+                          "w-6 h-6 mx-auto rounded-full flex items-center justify-center transition-all",
+                          "hover:scale-110 active:scale-95 cursor-pointer",
                           isCompleted
                             ? "bg-primary text-primary-foreground"
                             : isToday
-                            ? "bg-muted border border-primary/50"
-                            : "bg-muted"
+                            ? "bg-muted border border-primary/50 hover:bg-primary/20"
+                            : "bg-muted hover:bg-muted-foreground/20"
                         )}
                       >
                         {isCompleted && <span className="text-xs">✓</span>}
-                      </div>
+                      </button>
                     </td>
                   );
                 })}
@@ -97,7 +110,7 @@ export function CalendarView({ habits }: CalendarViewProps) {
 
       {habits.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          Нет привычек для отображения
+          {t('noHabitsToShow')}
         </div>
       )}
     </motion.div>

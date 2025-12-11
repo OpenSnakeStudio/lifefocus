@@ -1,17 +1,22 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { ru, enUS, es } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Habit } from '@/types/habit';
 import { PeriodSelector, Period } from './PeriodSelector';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface ProgressViewProps {
   habits: Habit[];
+  initialPeriod?: Period;
 }
 
-export function ProgressView({ habits }: ProgressViewProps) {
-  const [period, setPeriod] = useState<Period>('7');
+export function ProgressView({ habits, initialPeriod = '7' }: ProgressViewProps) {
+  const [period, setPeriod] = useState<Period>(initialPeriod);
+  const { t, language } = useTranslation();
+
+  const locale = language === 'ru' ? ru : language === 'es' ? es : enUS;
 
   const chartData = useMemo(() => {
     const today = new Date();
@@ -28,14 +33,14 @@ export function ProgressView({ habits }: ProgressViewProps) {
       }, 0);
 
       return {
-        date: format(day, 'd MMM', { locale: ru }),
+        date: format(day, 'd MMM', { locale }),
         fullDate: dateStr,
         completed: completedCount,
         total: habits.length,
         percentage: habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0,
       };
     });
-  }, [habits, period]);
+  }, [habits, period, locale]);
 
   const averageCompletion = useMemo(() => {
     if (chartData.length === 0) return 0;
@@ -60,11 +65,11 @@ export function ProgressView({ habits }: ProgressViewProps) {
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card rounded-xl p-4 shadow-card">
-          <p className="text-xs text-muted-foreground">Среднее выполнение</p>
+          <p className="text-xs text-muted-foreground">{t('averageCompletion')}</p>
           <p className="text-2xl font-bold text-foreground">{averageCompletion}%</p>
         </div>
         <div className="bg-card rounded-xl p-4 shadow-card">
-          <p className="text-xs text-muted-foreground">Всего выполнено</p>
+          <p className="text-xs text-muted-foreground">{t('totalCompleted')}</p>
           <p className="text-2xl font-bold text-foreground">{totalCompleted}</p>
         </div>
       </div>
@@ -72,7 +77,7 @@ export function ProgressView({ habits }: ProgressViewProps) {
       {/* Chart */}
       {habits.length > 0 ? (
         <div className="bg-card rounded-xl p-4 shadow-card">
-          <h3 className="text-sm font-medium text-foreground mb-4">Выполнение по дням</h3>
+          <h3 className="text-sm font-medium text-foreground mb-4">{t('dailyProgress')}</h3>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
@@ -98,7 +103,7 @@ export function ProgressView({ habits }: ProgressViewProps) {
                     fontSize: '12px',
                   }}
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number) => [`${value}%`, 'Выполнение']}
+                  formatter={(value: number) => [`${value}%`, t('completedTasks')]}
                 />
                 <Line
                   type="monotone"
@@ -114,7 +119,7 @@ export function ProgressView({ habits }: ProgressViewProps) {
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          Добавьте привычки для отображения прогресса
+          {t('noHabitsToShow')}
         </div>
       )}
     </motion.div>

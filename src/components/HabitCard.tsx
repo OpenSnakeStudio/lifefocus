@@ -3,6 +3,8 @@ import { Check, MoreVertical, Flame } from 'lucide-react';
 import { Habit } from '@/types/habit';
 import { ProgressRing } from './ProgressRing';
 import { getTodayString, getWeekDates } from '@/hooks/useHabits';
+import { useTranslation } from '@/contexts/LanguageContext';
+import { TranslationKey } from '@/i18n/translations';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,10 +21,13 @@ interface HabitCardProps {
   index: number;
 }
 
+const WEEKDAY_KEYS: TranslationKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
 export function HabitCard({ habit, onToggle, onEdit, onDelete, index }: HabitCardProps) {
   const today = getTodayString();
   const weekDates = getWeekDates();
   const isCompletedToday = habit.completedDates.includes(today);
+  const { t } = useTranslation();
   
   const weekProgress = weekDates.filter(date => {
     const dayOfWeek = new Date(date).getDay();
@@ -89,7 +94,7 @@ export function HabitCard({ habit, onToggle, onEdit, onDelete, index }: HabitCar
               </span>
             )}
             <span className="text-xs text-muted-foreground">
-              {weekProgress}/{weekTarget} на этой неделе
+              {weekProgress}/{weekTarget} {t('thisWeek')}
             </span>
           </div>
         </div>
@@ -110,10 +115,10 @@ export function HabitCard({ habit, onToggle, onEdit, onDelete, index }: HabitCar
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEdit}>
-              Редактировать
+              {t('edit')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
-              Удалить
+              {t('delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -121,7 +126,7 @@ export function HabitCard({ habit, onToggle, onEdit, onDelete, index }: HabitCar
 
       {/* Week progress dots */}
       <div className="flex justify-between mt-4 px-1">
-        {weekDates.map((date, i) => {
+        {weekDates.map((date) => {
           const dayOfWeek = new Date(date).getDay();
           const isTarget = habit.targetDays.includes(dayOfWeek);
           const isCompleted = habit.completedDates.includes(date);
@@ -143,7 +148,7 @@ export function HabitCard({ habit, onToggle, onEdit, onDelete, index }: HabitCar
               }`}
               style={isCompleted ? { background: habit.color } : undefined}
             >
-              {['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek]}
+              {t(WEEKDAY_KEYS[dayOfWeek])}
             </button>
           );
         })}

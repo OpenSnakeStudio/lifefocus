@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Habit, HABIT_ICONS, HABIT_COLORS, WEEKDAYS } from '@/types/habit';
+import { Habit, HABIT_ICONS, HABIT_COLORS } from '@/types/habit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/contexts/LanguageContext';
+import { TranslationKey } from '@/i18n/translations';
 
 interface HabitDialogProps {
   open: boolean;
@@ -13,11 +15,14 @@ interface HabitDialogProps {
   habit?: Habit | null;
 }
 
+const WEEKDAY_KEYS: TranslationKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
 export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState(HABIT_ICONS[0]);
   const [color, setColor] = useState(HABIT_COLORS[0]);
   const [targetDays, setTargetDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (habit) {
@@ -76,7 +81,7 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
           >
             <div className="sticky top-0 bg-card z-10 px-6 pt-4 pb-2 flex items-center justify-between border-b border-border">
               <h2 className="text-lg font-semibold text-foreground">
-                {habit ? 'Редактировать привычку' : 'Новая привычка'}
+                {habit ? t('editHabit') : t('newHabit')}
               </h2>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="w-5 h-5" />
@@ -86,19 +91,19 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
             <div className="p-6 space-y-6">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Название</Label>
+                <Label htmlFor="name">{t('habitName')}</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Например: Медитация"
+                  placeholder={t('habitNamePlaceholder')}
                   className="h-12 text-base"
                 />
               </div>
 
               {/* Icon */}
               <div className="space-y-2">
-                <Label>Иконка</Label>
+                <Label>{t('icon')}</Label>
                 <div className="grid grid-cols-8 gap-2">
                   {HABIT_ICONS.map((i) => (
                     <button
@@ -118,7 +123,7 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
 
               {/* Color */}
               <div className="space-y-2">
-                <Label>Цвет</Label>
+                <Label>{t('color')}</Label>
                 <div className="grid grid-cols-8 gap-2">
                   {HABIT_COLORS.map((c) => (
                     <button
@@ -135,19 +140,19 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
 
               {/* Days */}
               <div className="space-y-2">
-                <Label>Дни недели</Label>
+                <Label>{t('targetDays')}</Label>
                 <div className="flex gap-2">
-                  {WEEKDAYS.map((day) => (
+                  {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                     <button
-                      key={day.id}
-                      onClick={() => toggleDay(day.id)}
+                      key={day}
+                      onClick={() => toggleDay(day)}
                       className={`flex-1 h-12 rounded-xl font-medium transition-all ${
-                        targetDays.includes(day.id)
+                        targetDays.includes(day)
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-muted-foreground hover:bg-muted'
                       }`}
                     >
-                      {day.short}
+                      {t(WEEKDAY_KEYS[day])}
                     </button>
                   ))}
                 </div>
@@ -159,7 +164,7 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
                 disabled={!name.trim() || targetDays.length === 0}
                 className="w-full h-14 text-base font-semibold gradient-primary text-primary-foreground"
               >
-                {habit ? 'Сохранить' : 'Создать привычку'}
+                {habit ? t('save') : t('createHabit')}
               </Button>
             </div>
           </motion.div>
