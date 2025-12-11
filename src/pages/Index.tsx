@@ -6,6 +6,11 @@ import { Habit } from '@/types/habit';
 import { HabitCard } from '@/components/HabitCard';
 import { HabitDialog } from '@/components/HabitDialog';
 import { StatsHeader } from '@/components/StatsHeader';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { ViewTabs, ViewType } from '@/components/ViewTabs';
+import { CalendarView } from '@/components/CalendarView';
+import { ProgressView } from '@/components/ProgressView';
+import { ShareButtons } from '@/components/ShareButtons';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -23,6 +28,7 @@ const Index = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteConfirmHabit, setDeleteConfirmHabit] = useState<Habit | null>(null);
+  const [activeView, setActiveView] = useState<ViewType>('habits');
 
   const handleSaveHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'streak'>) => {
     if (editingHabit) {
@@ -62,59 +68,103 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-lg mx-auto px-4 py-6 pb-24">
+        {/* Header with theme toggle and share buttons */}
+        <div className="flex items-center justify-between mb-4">
+          <ShareButtons />
+          <ThemeToggle />
+        </div>
+
         <StatsHeader habits={habits} />
 
-        {/* Habits section */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Мои привычки</h2>
-            <span className="text-sm text-muted-foreground">{habits.length}</span>
-          </div>
+        {/* View Tabs */}
+        <div className="mt-6">
+          <ViewTabs value={activeView} onValueChange={setActiveView} />
+        </div>
 
-          <AnimatePresence mode="popLayout">
-            {habits.length === 0 ? (
+        {/* Content based on active view */}
+        <div className="mt-6">
+          <AnimatePresence mode="wait">
+            {activeView === 'habits' && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
+                key="habits"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
               >
-                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <Sparkles className="w-10 h-10 text-primary" />
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-foreground">Мои привычки</h2>
+                  <span className="text-sm text-muted-foreground">{habits.length}</span>
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Начните формировать привычки
-                </h3>
-                <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-                  Создайте свою первую привычку и начните путь к лучшей версии себя
-                </p>
-                <Button 
-                  onClick={() => setDialogOpen(true)}
-                  className="gradient-primary text-primary-foreground"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Создать привычку
-                </Button>
+
+                <AnimatePresence mode="popLayout">
+                  {habits.length === 0 ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-12"
+                    >
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <Sparkles className="w-10 h-10 text-primary" />
+                      </div>
+                      <h3 className="text-lg font-medium text-foreground mb-2">
+                        Начните формировать привычки
+                      </h3>
+                      <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
+                        Создайте свою первую привычку и начните путь к лучшей версии себя
+                      </p>
+                      <Button 
+                        onClick={() => setDialogOpen(true)}
+                        className="gradient-primary text-primary-foreground"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Создать привычку
+                      </Button>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-3">
+                      {habits.map((habit, index) => (
+                        <HabitCard
+                          key={habit.id}
+                          habit={habit}
+                          index={index}
+                          onToggle={(date) => toggleHabitCompletion(habit.id, date)}
+                          onEdit={() => handleEditHabit(habit)}
+                          onDelete={() => handleDeleteHabit(habit)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </AnimatePresence>
               </motion.div>
-            ) : (
-              <div className="space-y-3">
-                {habits.map((habit, index) => (
-                  <HabitCard
-                    key={habit.id}
-                    habit={habit}
-                    index={index}
-                    onToggle={(date) => toggleHabitCompletion(habit.id, date)}
-                    onEdit={() => handleEditHabit(habit)}
-                    onDelete={() => handleDeleteHabit(habit)}
-                  />
-                ))}
-              </div>
+            )}
+
+            {activeView === 'calendar' && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
+                <CalendarView habits={habits} />
+              </motion.div>
+            )}
+
+            {activeView === 'progress' && (
+              <motion.div
+                key="progress"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+              >
+                <ProgressView habits={habits} />
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
       {/* FAB */}
-      {habits.length > 0 && (
+      {habits.length > 0 && activeView === 'habits' && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
