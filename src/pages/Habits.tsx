@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, Target } from 'lucide-react';
 import { useHabits } from '@/hooks/useHabits';
 import { Habit } from '@/types/habit';
 import { HabitCard } from '@/components/HabitCard';
 import { HabitDialog } from '@/components/HabitDialog';
-import { StatsHeader } from '@/components/StatsHeader';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { ViewTabs, ViewType } from '@/components/ViewTabs';
 import { CalendarView } from '@/components/CalendarView';
 import { ProgressView } from '@/components/ProgressView';
-import { ShareButtons } from '@/components/ShareButtons';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/contexts/LanguageContext';
 import {
@@ -25,7 +23,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const Index = () => {
+interface HabitsProps {
+  openDialog?: boolean;
+  onDialogClose?: () => void;
+}
+
+export default function Habits({ openDialog, onDialogClose }: HabitsProps) {
   const { habits, isLoading, addHabit, updateHabit, deleteHabit, toggleHabitCompletion } = useHabits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -40,6 +43,8 @@ const Index = () => {
       addHabit(habitData);
     }
     setEditingHabit(null);
+    setDialogOpen(false);
+    onDialogClose?.();
   };
 
   const handleEditHabit = (habit: Habit) => {
@@ -58,41 +63,35 @@ const Index = () => {
     }
   };
 
-  const handleWeekClick = () => {
-    setActiveView('calendar');
-  };
-
-  const handleHabitsClick = () => {
-    setActiveView('progress');
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse-soft">
-          <Sparkles className="w-12 h-12 text-primary" />
+          <Sparkles className="w-12 h-12 text-habit" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 py-6 pb-24">
-        {/* Header with theme toggle, language selector and share buttons */}
-        <div className="flex items-center justify-between mb-4">
-          <ShareButtons />
+    <div className="min-h-screen bg-background pb-24">
+      <div className="max-w-lg mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-habit/20 flex items-center justify-center">
+              <Target className="w-5 h-5 text-habit" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">{t('myHabits')}</h1>
+              <p className="text-sm text-muted-foreground">{habits.length} {t('habits').toLowerCase()}</p>
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <LanguageSelector />
             <ThemeToggle />
           </div>
         </div>
-
-        <StatsHeader 
-          habits={habits} 
-          onWeekClick={handleWeekClick}
-          onHabitsClick={handleHabitsClick}
-        />
 
         {/* View Tabs */}
         <div className="mt-6">
@@ -109,11 +108,6 @@ const Index = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-foreground">{t('myHabits')}</h2>
-                  <span className="text-sm text-muted-foreground">{habits.length}</span>
-                </div>
-
                 <AnimatePresence mode="popLayout">
                   {habits.length === 0 ? (
                     <motion.div
@@ -121,8 +115,8 @@ const Index = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-center py-12"
                     >
-                      <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                        <Sparkles className="w-10 h-10 text-primary" />
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-habit/20 to-habit/10 flex items-center justify-center">
+                        <Target className="w-10 h-10 text-habit" />
                       </div>
                       <h3 className="text-lg font-medium text-foreground mb-2">
                         {t('startBuilding')}
@@ -132,7 +126,7 @@ const Index = () => {
                       </p>
                       <Button 
                         onClick={() => setDialogOpen(true)}
-                        className="gradient-primary text-primary-foreground"
+                        className="bg-habit text-white hover:bg-habit/90"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         {t('createHabit')}
@@ -191,7 +185,7 @@ const Index = () => {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, type: 'spring' }}
-          className="fixed bottom-6 right-6"
+          className="fixed bottom-24 right-6"
         >
           <Button
             onClick={() => {
@@ -199,19 +193,20 @@ const Index = () => {
               setDialogOpen(true);
             }}
             size="lg"
-            className="w-14 h-14 rounded-full gradient-primary shadow-glow p-0"
+            className="w-14 h-14 rounded-full bg-habit hover:bg-habit/90 shadow-lg p-0"
           >
-            <Plus className="w-6 h-6 text-primary-foreground" />
+            <Plus className="w-6 h-6 text-white" />
           </Button>
         </motion.div>
       )}
 
       {/* Dialogs */}
       <HabitDialog
-        open={dialogOpen}
+        open={dialogOpen || !!openDialog}
         onClose={() => {
           setDialogOpen(false);
           setEditingHabit(null);
+          onDialogClose?.();
         }}
         onSave={handleSaveHabit}
         habit={editingHabit}
@@ -235,6 +230,4 @@ const Index = () => {
       </AlertDialog>
     </div>
   );
-};
-
-export default Index;
+}

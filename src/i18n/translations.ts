@@ -78,6 +78,64 @@ export const translations = {
     // Habit card
     thisWeek: 'на этой неделе',
     edit: 'Редактировать',
+
+    // Dashboard
+    yourDay: 'Твой день',
+    habitsDone: 'Выполнено привычек',
+    tasksDone: 'Выполнено задач',
+    financeBalance: 'Баланс операций',
+    exercisesDone: 'Выполнено упражнений',
+    todoToday: 'Сделать сегодня',
+    recoveryDay: 'Восстановительный день - займитесь другими делами',
+
+    // Navigation
+    tasks: 'Задачи',
+    finance: 'Финансы',
+    fitness: 'Фитнес',
+    new: 'Новая',
+    task: 'Задача',
+    transaction: 'Операция',
+    workout: 'Тренировка',
+
+    // Tasks
+    taskTracker: 'Трекер задач',
+    startTasks: 'Начните планировать задачи',
+    createFirstTask: 'Создайте свою первую задачу и организуйте свой день',
+    createTask: 'Создать задачу',
+    newTask: 'Новая задача',
+    editTask: 'Редактировать задачу',
+    deleteTask: 'Удалить задачу?',
+    deleteTaskDescription: 'Задача будет удалена. Это действие нельзя отменить.',
+    taskName: 'Название задачи',
+    taskNamePlaceholder: 'Например: Позвонить врачу',
+    dueDate: 'Срок выполнения',
+    priority: 'Приоритет',
+    priorityLow: 'Низкий',
+    priorityMedium: 'Средний',
+    priorityHigh: 'Высокий',
+    overdue: 'Просрочено',
+    today: 'Сегодня',
+
+    // Finance
+    financeTracker: 'Трекер финансов',
+    startFinance: 'Начните отслеживать финансы',
+    createFirstTransaction: 'Создайте свою первую операцию',
+    createTransaction: 'Создать операцию',
+    income: 'Доход',
+    expense: 'Расход',
+    amount: 'Сумма',
+    category: 'Категория',
+
+    // Fitness
+    fitnessTracker: 'Фитнес трекер',
+    startFitness: 'Начните тренироваться',
+    createFirstWorkout: 'Создайте свою первую тренировку',
+    createWorkout: 'Создать тренировку',
+    exercises: 'Упражнения',
+    sets: 'Подходы',
+    reps: 'Повторения',
+    duration: 'Длительность',
+    scheduledDays: 'Дни тренировок',
   },
   en: {
     // Greetings
@@ -156,6 +214,64 @@ export const translations = {
     // Habit card
     thisWeek: 'this week',
     edit: 'Edit',
+
+    // Dashboard
+    yourDay: 'Your Day',
+    habitsDone: 'Habits Done',
+    tasksDone: 'Tasks Done',
+    financeBalance: 'Finance Balance',
+    exercisesDone: 'Exercises Done',
+    todoToday: 'To Do Today',
+    recoveryDay: 'Recovery Day - Focus on other activities',
+
+    // Navigation
+    tasks: 'Tasks',
+    finance: 'Finance',
+    fitness: 'Fitness',
+    new: 'New',
+    task: 'Task',
+    transaction: 'Transaction',
+    workout: 'Workout',
+
+    // Tasks
+    taskTracker: 'Task Tracker',
+    startTasks: 'Start planning tasks',
+    createFirstTask: 'Create your first task and organize your day',
+    createTask: 'Create task',
+    newTask: 'New task',
+    editTask: 'Edit task',
+    deleteTask: 'Delete task?',
+    deleteTaskDescription: 'The task will be deleted. This action cannot be undone.',
+    taskName: 'Task name',
+    taskNamePlaceholder: 'E.g.: Call the doctor',
+    dueDate: 'Due date',
+    priority: 'Priority',
+    priorityLow: 'Low',
+    priorityMedium: 'Medium',
+    priorityHigh: 'High',
+    overdue: 'Overdue',
+    today: 'Today',
+
+    // Finance
+    financeTracker: 'Finance Tracker',
+    startFinance: 'Start tracking finances',
+    createFirstTransaction: 'Create your first transaction',
+    createTransaction: 'Create transaction',
+    income: 'Income',
+    expense: 'Expense',
+    amount: 'Amount',
+    category: 'Category',
+
+    // Fitness
+    fitnessTracker: 'Fitness Tracker',
+    startFitness: 'Start training',
+    createFirstWorkout: 'Create your first workout',
+    createWorkout: 'Create workout',
+    exercises: 'Exercises',
+    sets: 'Sets',
+    reps: 'Reps',
+    duration: 'Duration',
+    scheduledDays: 'Scheduled days',
   },
   es: {
     // Greetings
@@ -234,6 +350,64 @@ export const translations = {
     // Habit card
     thisWeek: 'esta semana',
     edit: 'Editar',
+
+    // Dashboard
+    yourDay: 'Tu Día',
+    habitsDone: 'Hábitos Completados',
+    tasksDone: 'Tareas Completadas',
+    financeBalance: 'Balance Financiero',
+    exercisesDone: 'Ejercicios Completados',
+    todoToday: 'Por Hacer Hoy',
+    recoveryDay: 'Día de Recuperación - Enfócate en otras actividades',
+
+    // Navigation
+    tasks: 'Tareas',
+    finance: 'Finanzas',
+    fitness: 'Fitness',
+    new: 'Nueva',
+    task: 'Tarea',
+    transaction: 'Transacción',
+    workout: 'Entrenamiento',
+
+    // Tasks
+    taskTracker: 'Rastreador de Tareas',
+    startTasks: 'Comienza a planificar tareas',
+    createFirstTask: 'Crea tu primera tarea y organiza tu día',
+    createTask: 'Crear tarea',
+    newTask: 'Nueva tarea',
+    editTask: 'Editar tarea',
+    deleteTask: '¿Eliminar tarea?',
+    deleteTaskDescription: 'La tarea será eliminada. Esta acción no se puede deshacer.',
+    taskName: 'Nombre de la tarea',
+    taskNamePlaceholder: 'Ej: Llamar al médico',
+    dueDate: 'Fecha límite',
+    priority: 'Prioridad',
+    priorityLow: 'Baja',
+    priorityMedium: 'Media',
+    priorityHigh: 'Alta',
+    overdue: 'Vencida',
+    today: 'Hoy',
+
+    // Finance
+    financeTracker: 'Rastreador de Finanzas',
+    startFinance: 'Comienza a rastrear finanzas',
+    createFirstTransaction: 'Crea tu primera transacción',
+    createTransaction: 'Crear transacción',
+    income: 'Ingreso',
+    expense: 'Gasto',
+    amount: 'Monto',
+    category: 'Categoría',
+
+    // Fitness
+    fitnessTracker: 'Rastreador de Fitness',
+    startFitness: 'Comienza a entrenar',
+    createFirstWorkout: 'Crea tu primer entrenamiento',
+    createWorkout: 'Crear entrenamiento',
+    exercises: 'Ejercicios',
+    sets: 'Series',
+    reps: 'Repeticiones',
+    duration: 'Duración',
+    scheduledDays: 'Días programados',
   },
 } as const;
 

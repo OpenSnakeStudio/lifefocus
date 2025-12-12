@@ -40,6 +40,12 @@
     --success: 145 70% 45%;
     --success-foreground: 0 0% 100%;
 
+    /* Module colors */
+    --habit: 145 70% 45%;
+    --task: 200 80% 50%;
+    --finance: 160 30% 45%;
+    --fitness: 262 80% 55%;
+
     --gradient-primary: linear-gradient(135deg, hsl(168, 80%, 40%), hsl(180, 70%, 45%));
     --gradient-accent: linear-gradient(135deg, hsl(35, 95%, 55%), hsl(25, 90%, 50%));
     --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 15%, 98%));
@@ -82,6 +88,12 @@
 
     --success: 145 65% 45%;
     --success-foreground: 220 25% 8%;
+
+    /* Module colors */
+    --habit: 145 65% 45%;
+    --task: 200 75% 50%;
+    --finance: 160 25% 45%;
+    --fitness: 262 75% 55%;
 
     --gradient-primary: linear-gradient(135deg, hsl(168, 75%, 45%), hsl(180, 65%, 50%));
     --gradient-accent: linear-gradient(135deg, hsl(35, 90%, 55%), hsl(25, 85%, 50%));
@@ -147,6 +159,10 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 

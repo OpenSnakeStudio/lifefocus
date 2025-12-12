@@ -55,6 +55,11 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        // Module colors
+        task: "hsl(var(--task))",
+        finance: "hsl(var(--finance))",
+        fitness: "hsl(var(--fitness))",
+        habit: "hsl(var(--habit))",
       },
       borderRadius: {
         lg: "var(--radius)",
