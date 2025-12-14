@@ -125,6 +125,12 @@ export const translations = {
     expense: 'Расход',
     amount: 'Сумма',
     category: 'Категория',
+    yesterday: 'Вчера',
+    noTransactionsForDay: 'Нет операций',
+    balanceDynamics: 'Динамика баланса',
+    expenseByCategory: 'Расходы по категориям',
+    noExpensesForPeriod: 'Нет расходов за период',
+    transactions: 'Операции',
 
     // Fitness
     fitnessTracker: 'Фитнес трекер',

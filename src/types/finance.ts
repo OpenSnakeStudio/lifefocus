@@ -5,20 +5,30 @@ export interface FinanceTransaction {
   amount: number;
   category: string;
   date: string; // YYYY-MM-DD
+  description?: string;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
 }
 
 export const FINANCE_CATEGORIES = [
-  { id: 'salary', name: 'Зарплата', icon: '💵', type: 'income' },
-  { id: 'freelance', name: 'Фриланс', icon: '💻', type: 'income' },
-  { id: 'investment', name: 'Инвестиции', icon: '📈', type: 'income' },
-  { id: 'gift', name: 'Подарок', icon: '🎁', type: 'income' },
-  { id: 'food', name: 'Еда', icon: '🍔', type: 'expense' },
-  { id: 'transport', name: 'Транспорт', icon: '🚗', type: 'expense' },
-  { id: 'entertainment', name: 'Развлечения', icon: '🎬', type: 'expense' },
-  { id: 'bills', name: 'Счета', icon: '📄', type: 'expense' },
-  { id: 'shopping', name: 'Покупки', icon: '🛒', type: 'expense' },
-  { id: 'health', name: 'Здоровье', icon: '💊', type: 'expense' },
+  // Income categories
+  { id: 'salary', name: 'Зарплата', icon: '💰', type: 'income' as const },
+  { id: 'freelance', name: 'Фриланс', icon: '💼', type: 'income' as const },
+  { id: 'investment', name: 'Инвестиции', icon: '📈', type: 'income' as const },
+  { id: 'gift', name: 'Подарок', icon: '🎁', type: 'income' as const },
+  { id: 'other_income', name: 'Другое', icon: '📦', type: 'income' as const },
+  // Expense categories
+  { id: 'food', name: 'Еда', icon: '🍔', type: 'expense' as const },
+  { id: 'transport', name: 'Транспорт', icon: '🚗', type: 'expense' as const },
+  { id: 'entertainment', name: 'Развлечения', icon: '🎬', type: 'expense' as const },
+  { id: 'bills', name: 'Счета', icon: '📄', type: 'expense' as const },
+  { id: 'shopping', name: 'Покупки', icon: '🛒', type: 'expense' as const },
+  { id: 'health', name: 'Здоровье', icon: '🏥', type: 'expense' as const },
+  { id: 'home', name: 'Дом', icon: '🏠', type: 'expense' as const },
+  { id: 'other_expense', name: 'Другое', icon: '📦', type: 'expense' as const },
 ];
+
+export const getCategoryById = (id: string) => {
+  return FINANCE_CATEGORIES.find(c => c.id === id);
+};
