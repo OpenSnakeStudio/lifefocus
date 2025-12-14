@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FinanceTransaction } from '@/types/finance';
 
 const STORAGE_KEY = 'habitflow_finance';
@@ -71,6 +71,47 @@ export function useFinance() {
     }, 0);
   }, [getTodayTransactions]);
 
+  const getTotalIncome = useCallback(() => {
+    return transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const getTotalExpenses = useCallback(() => {
+    return transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const getBalance = useCallback(() => {
+    return getTotalIncome() - getTotalExpenses();
+  }, [getTotalIncome, getTotalExpenses]);
+
+  const getCompletedIncome = useCallback(() => {
+    return transactions
+      .filter(t => t.type === 'income' && t.completed)
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const getCompletedExpenses = useCallback(() => {
+    return transactions
+      .filter(t => t.type === 'expense' && t.completed)
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const getTransactionsByPeriod = useCallback((days: number) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return transactions.filter(t => new Date(t.date) >= startDate);
+  }, [transactions]);
+
+  const getTransactionsByDateRange = useCallback((startDate: Date, endDate: Date) => {
+    return transactions.filter(t => {
+      const date = new Date(t.date);
+      return date >= startDate && date <= endDate;
+    });
+  }, [transactions]);
+
   return {
     transactions,
     isLoading,
@@ -80,5 +121,12 @@ export function useFinance() {
     toggleTransactionCompletion,
     getTodayTransactions,
     getTodayBalance,
+    getTotalIncome,
+    getTotalExpenses,
+    getBalance,
+    getCompletedIncome,
+    getCompletedExpenses,
+    getTransactionsByPeriod,
+    getTransactionsByDateRange,
   };
 }
