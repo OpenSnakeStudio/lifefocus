@@ -79,6 +79,7 @@ export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
         <PageHeader
+          showTitle
           icon={<CheckSquare className="w-5 h-5 text-task" />}
           iconBgClass="bg-task/20"
           title={t('taskTracker')}

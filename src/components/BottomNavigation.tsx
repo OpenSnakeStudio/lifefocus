@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, CheckSquare, Wallet, Dumbbell, Plus, X } from 'lucide-react';
+import { Home, Target, CheckSquare, Wallet, Dumbbell, Plus, X, User } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -24,10 +24,13 @@ export function BottomNavigation({
   const { t } = useTranslation();
 
   const navItems = [
+    { path: '/', icon: Home, label: t('home'), color: 'hsl(var(--primary))' },
     { path: '/habits', icon: Target, label: t('habits'), color: 'hsl(var(--habit))' },
     { path: '/tasks', icon: CheckSquare, label: t('tasks'), color: 'hsl(var(--task))' },
+    // Plus button goes here (index 3)
     { path: '/finance', icon: Wallet, label: t('finance'), color: 'hsl(var(--finance))' },
     { path: '/fitness', icon: Dumbbell, label: t('fitness'), color: 'hsl(var(--fitness))' },
+    { path: '/profile', icon: User, label: t('profile'), color: 'hsl(var(--muted-foreground))' },
   ];
 
   const quickAddItems = [
@@ -39,9 +42,7 @@ export function BottomNavigation({
 
   const handleQuickAdd = (item: typeof quickAddItems[0]) => {
     setIsMenuOpen(false);
-    // Navigate to the section first, then open dialog
     navigate(item.path);
-    // Small delay to ensure navigation completes
     setTimeout(() => {
       item.action();
     }, 100);
@@ -50,6 +51,9 @@ export function BottomNavigation({
   const handleNavClick = (path: string) => {
     navigate(path);
   };
+
+  const leftItems = navItems.slice(0, 3); // Home, Habits, Tasks
+  const rightItems = navItems.slice(3); // Finance, Fitness, Profile
 
   return (
     <>
@@ -70,12 +74,10 @@ export function BottomNavigation({
       <AnimatePresence>
         {isMenuOpen && (
           <div className="fixed inset-0 z-50 pointer-events-none">
-            {/* Center container */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto">
               {quickAddItems.map((item, index) => {
-                // Arrange in a semi-circle above center
                 const totalItems = quickAddItems.length;
-                const angleSpread = 140; // degrees
+                const angleSpread = 140;
                 const startAngle = -180 + (180 - angleSpread) / 2;
                 const angleStep = angleSpread / (totalItems - 1);
                 const angle = startAngle + (index * angleStep);
@@ -87,12 +89,7 @@ export function BottomNavigation({
                   <motion.button
                     key={item.label}
                     initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                      scale: 1, 
-                      x, 
-                      y, 
-                      opacity: 1 
-                    }}
+                    animate={{ scale: 1, x, y, opacity: 1 }}
                     exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
                     transition={{ delay: index * 0.05, type: 'spring', stiffness: 300 }}
                     onClick={() => handleQuickAdd(item)}
@@ -117,7 +114,7 @@ export function BottomNavigation({
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 onClick={() => setIsMenuOpen(false)}
-                className="w-14 h-14 rounded-full bg-muted flex items-center justify-center shadow-lg -translate-x-1/2 -translate-y-1/2"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-muted flex items-center justify-center shadow-lg"
               >
                 <X className="w-6 h-6 text-foreground" />
               </motion.button>
@@ -128,14 +125,14 @@ export function BottomNavigation({
 
       {/* Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border safe-area-inset-bottom">
-        <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-2">
-          {/* Left side items */}
-          {navItems.slice(0, 2).map((item) => (
+        <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-1">
+          {/* Left side items: Home, Habits, Tasks */}
+          {leftItems.map((item) => (
             <button
               key={item.path}
               onClick={() => handleNavClick(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[60px]",
+                "flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors min-w-[48px]",
                 location.pathname === item.path
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -143,7 +140,7 @@ export function BottomNavigation({
               style={location.pathname === item.path ? { color: item.color } : undefined}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-xs mt-1 hidden sm:block">{item.label}</span>
+              <span className="text-[10px] mt-0.5 hidden sm:block">{item.label}</span>
             </button>
           ))}
 
@@ -151,24 +148,24 @@ export function BottomNavigation({
           <div className="relative">
             <motion.button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-glow -mt-6"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary flex items-center justify-center shadow-glow -mt-6"
               whileTap={{ scale: 0.95 }}
               animate={{ rotate: isMenuOpen ? 45 : 0 }}
             >
               <Plus className="w-6 h-6 text-primary-foreground" />
             </motion.button>
-            <span className="text-xs text-muted-foreground mt-1 hidden sm:block text-center absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground mt-0.5 hidden sm:block text-center absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
               {t('new')}
             </span>
           </div>
 
-          {/* Right side items */}
-          {navItems.slice(2, 4).map((item) => (
+          {/* Right side items: Finance, Fitness, Profile */}
+          {rightItems.map((item) => (
             <button
               key={item.path}
               onClick={() => handleNavClick(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors min-w-[60px]",
+                "flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors min-w-[48px]",
                 location.pathname === item.path
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -176,7 +173,7 @@ export function BottomNavigation({
               style={location.pathname === item.path ? { color: item.color } : undefined}
             >
               <item.icon className="w-5 h-5" />
-              <span className="text-xs mt-1 hidden sm:block">{item.label}</span>
+              <span className="text-[10px] mt-0.5 hidden sm:block">{item.label}</span>
             </button>
           ))}
         </div>

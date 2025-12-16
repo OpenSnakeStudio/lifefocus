@@ -11,6 +11,7 @@ import Habits from "./pages/Habits";
 import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
 import Fitness from "./pages/Fitness";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const AppContent = () => {
             />
           } 
         />
+        <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNavigation 

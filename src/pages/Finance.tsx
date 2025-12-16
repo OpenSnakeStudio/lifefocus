@@ -87,6 +87,7 @@ export default function Finance({ openDialog, onDialogClose }: FinanceProps) {
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
         <PageHeader
+          showTitle
           icon={<Wallet className="w-5 h-5 text-finance" />}
           iconBgClass="bg-finance/20"
           title={t('financeTracker')}

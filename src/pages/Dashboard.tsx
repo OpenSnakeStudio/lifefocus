@@ -1,20 +1,17 @@
-import { Target, CheckSquare, Wallet, Dumbbell } from 'lucide-react';
+import { Target, CheckSquare, Wallet, Dumbbell, Sparkles } from 'lucide-react';
 import { useHabits, getTodayString } from '@/hooks/useHabits';
 import { useTasks } from '@/hooks/useTasks';
 import { useFinance } from '@/hooks/useFinance';
 import { useFitness } from '@/hooks/useFitness';
 import { useTranslation } from '@/contexts/LanguageContext';
-import { DayCard } from '@/components/dashboard/DayCard';
+import { ProgressBar } from '@/components/dashboard/ProgressBar';
 import { TodoSection } from '@/components/dashboard/TodoSection';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { ShareButtons } from '@/components/ShareButtons';
-import { Sparkles } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
 
 export default function Dashboard() {
   const { habits, toggleHabitCompletion } = useHabits();
   const { tasks, toggleTaskCompletion, getTodayTasks } = useTasks();
-  const { transactions, toggleTransactionCompletion, getTodayTransactions, getTodayBalance } = useFinance();
+  const { transactions, toggleTransactionCompletion, getTodayTransactions } = useFinance();
   const { getTodayExercises, toggleExerciseCompletion } = useFitness();
   const { t } = useTranslation();
 
@@ -32,33 +29,18 @@ export default function Dashboard() {
   // Transactions for today
   const todayTransactions = getTodayTransactions();
   const completedTransactions = todayTransactions.filter(t => t.completed);
-  const todayBalance = getTodayBalance();
 
   // Exercises for today
   const todayExercises = getTodayExercises();
   const completedExercises = todayExercises.filter(e => e.completed);
 
-  // Colors for modules (using CSS variables)
+  // Colors for modules
   const colors = {
     habits: 'hsl(var(--habit))',
     tasks: 'hsl(var(--task))',
     finance: 'hsl(var(--finance))',
     fitness: 'hsl(var(--fitness))',
   };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 6) return t('goodNight');
-    if (hour < 12) return t('goodMorning');
-    if (hour < 18) return t('goodAfternoon');
-    return t('goodEvening');
-  };
-
-  const dateString = new Date().toLocaleDateString('ru-RU', { 
-    weekday: 'long', 
-    day: 'numeric', 
-    month: 'long' 
-  });
 
   const isLoading = false;
 
@@ -76,64 +58,48 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
+        <PageHeader />
+
+        {/* Section: Сегодня */}
+        <h1 className="text-2xl font-bold text-foreground mb-4">{t('today')}</h1>
+
+        {/* Section: Выполнено */}
         <div className="mb-6">
-          {/* Greeting and Controls Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-lg font-medium text-foreground">{getGreeting()}</p>
-              <p className="text-sm text-muted-foreground capitalize">{dateString}</p>
-            </div>
-            <div className="flex items-center gap-1">
-              <LanguageSelector />
-              <ThemeToggle />
-            </div>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">{t('completed')}:</h2>
+          <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
+            <ProgressBar
+              icon={<Target className="w-4 h-4" />}
+              completed={completedHabits.length}
+              total={todayHabits.length}
+              label={t('habitsLabel')}
+              color={colors.habits}
+            />
+            <ProgressBar
+              icon={<CheckSquare className="w-4 h-4" />}
+              completed={completedTasks.length}
+              total={todayTasks.length}
+              label={t('tasksLabel')}
+              color={colors.tasks}
+            />
+            <ProgressBar
+              icon={<Wallet className="w-4 h-4" />}
+              completed={completedTransactions.length}
+              total={todayTransactions.length}
+              label={t('operationsLabel')}
+              color={colors.finance}
+            />
+            <ProgressBar
+              icon={<Dumbbell className="w-4 h-4" />}
+              completed={completedExercises.length}
+              total={todayExercises.length}
+              label={t('exercisesLabel')}
+              color={colors.fitness}
+            />
           </div>
-
-          {/* Share Buttons */}
-          <div className="mb-4">
-            <ShareButtons />
-          </div>
-
-          {/* Title */}
-          <h1 className="text-2xl font-bold text-foreground">{t('yourDay')}</h1>
         </div>
 
-        {/* Day Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <DayCard
-            title={t('habitsDone')}
-            completed={completedHabits.length}
-            total={todayHabits.length}
-            color={colors.habits}
-            icon={<Target className="w-5 h-5" />}
-          />
-          <DayCard
-            title={t('tasksDone')}
-            completed={completedTasks.length}
-            total={todayTasks.length}
-            color={colors.tasks}
-            icon={<CheckSquare className="w-5 h-5" />}
-          />
-          <DayCard
-            title={t('financeBalance')}
-            completed={completedTransactions.length}
-            total={todayTransactions.length}
-            color={colors.finance}
-            icon={<Wallet className="w-5 h-5" />}
-            isBalance
-            balanceValue={todayBalance}
-          />
-          <DayCard
-            title={t('exercisesDone')}
-            completed={completedExercises.length}
-            total={todayExercises.length}
-            color={colors.fitness}
-            icon={<Dumbbell className="w-5 h-5" />}
-          />
-        </div>
-
-        {/* To Do Today */}
-        <h2 className="text-lg font-semibold text-foreground mb-4">{t('todoToday')}</h2>
+        {/* Section: Сделать */}
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">{t('toDo')}:</h2>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <TodoSection

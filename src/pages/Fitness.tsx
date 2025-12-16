@@ -76,6 +76,7 @@ export default function Fitness({ openDialog, onDialogClose }: FitnessProps) {
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
         <PageHeader
+          showTitle
           icon={<Dumbbell className="w-5 h-5 text-fitness" />}
           iconBgClass="bg-fitness/20"
           title={t('fitnessTracker')}

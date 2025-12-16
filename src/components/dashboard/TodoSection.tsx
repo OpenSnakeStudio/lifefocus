@@ -19,55 +19,49 @@ interface TodoSectionProps {
 }
 
 export function TodoSection({ title, items, color, icon, onToggle, emptyMessage }: TodoSectionProps) {
+  // Filter to show only incomplete items
+  const incompleteItems = items.filter(i => !i.completed);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl p-4 bg-card border border-border shadow-card"
+      className="rounded-2xl p-4 shadow-card border border-border/30"
+      style={{ backgroundColor: `${color}25` }}
     >
       <div className="flex items-center gap-2 mb-3">
         <div 
           className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${color}20` }}
+          style={{ backgroundColor: `${color}40` }}
         >
-          <div style={{ color }}>{icon}</div>
+          <div className="text-white">{icon}</div>
         </div>
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {items.filter(i => !i.completed).length}
+        <span className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-background/50 text-foreground">
+          {incompleteItems.length}
         </span>
       </div>
 
       <div className="space-y-2 max-h-32 overflow-y-auto">
-        {items.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-2 text-center">
-            {emptyMessage || 'Нет элементов'}
+        {incompleteItems.length === 0 ? (
+          <p className="text-xs text-foreground/70 py-2 text-center">
+            {emptyMessage || '✓'}
           </p>
         ) : (
-          items.map((item) => (
+          incompleteItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onToggle(item.id)}
               className={cn(
                 "w-full flex items-center gap-2 p-2 rounded-lg transition-all text-left",
-                item.completed
-                  ? "bg-muted/50 opacity-60"
-                  : "bg-background hover:bg-muted/30"
+                "bg-background/40 hover:bg-background/60"
               )}
             >
               <div
-                className={cn(
-                  "w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors",
-                  item.completed
-                    ? "border-transparent"
-                    : "border-muted-foreground/30"
-                )}
-                style={{ 
-                  backgroundColor: item.completed ? color : 'transparent',
-                }}
+                className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors border-foreground/30"
               >
                 {item.completed && (
-                  <Check className="w-3 h-3 text-white" />
+                  <Check className="w-3 h-3 text-foreground" />
                 )}
               </div>
               
@@ -75,12 +69,7 @@ export function TodoSection({ title, items, color, icon, onToggle, emptyMessage 
                 <span className="text-sm flex-shrink-0">{item.icon}</span>
               )}
               
-              <span 
-                className={cn(
-                  "text-sm truncate",
-                  item.completed && "line-through text-muted-foreground"
-                )}
-              >
+              <span className="text-sm truncate text-foreground">
                 {item.name}
               </span>
             </button>

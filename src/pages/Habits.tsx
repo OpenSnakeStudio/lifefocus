@@ -77,6 +77,7 @@ export default function Habits({ openDialog, onDialogClose }: HabitsProps) {
       <div className="max-w-lg mx-auto px-4 py-6">
         {/* Header */}
         <PageHeader
+          showTitle
           icon={<Target className="w-5 h-5 text-habit" />}
           iconBgClass="bg-habit/20"
           title={t('myHabits')}

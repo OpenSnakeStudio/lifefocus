@@ -4,14 +4,15 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { ShareButtons } from '@/components/ShareButtons';
 
 interface PageHeaderProps {
-  icon: React.ReactNode;
-  iconBgClass: string;
-  title: string;
-  subtitle: string;
+  showTitle?: boolean;
+  icon?: React.ReactNode;
+  iconBgClass?: string;
+  title?: string;
+  subtitle?: string;
 }
 
-export function PageHeader({ icon, iconBgClass, title, subtitle }: PageHeaderProps) {
-  const { t } = useTranslation();
+export function PageHeader({ showTitle = false, icon, iconBgClass, title, subtitle }: PageHeaderProps) {
+  const { t, language } = useTranslation();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -21,7 +22,15 @@ export function PageHeader({ icon, iconBgClass, title, subtitle }: PageHeaderPro
     return t('goodEvening');
   };
 
-  const dateString = new Date().toLocaleDateString('ru-RU', { 
+  const getLocale = () => {
+    switch (language) {
+      case 'en': return 'en-US';
+      case 'es': return 'es-ES';
+      default: return 'ru-RU';
+    }
+  };
+
+  const dateString = new Date().toLocaleDateString(getLocale(), { 
     weekday: 'long', 
     day: 'numeric', 
     month: 'long' 
@@ -29,33 +38,33 @@ export function PageHeader({ icon, iconBgClass, title, subtitle }: PageHeaderPro
 
   return (
     <div className="mb-6">
-      {/* Greeting and Controls Row */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-lg font-medium text-foreground">{getGreeting()}</p>
-          <p className="text-sm text-muted-foreground capitalize">{dateString}</p>
-        </div>
+      {/* Controls Row - Top */}
+      <div className="flex items-center justify-between mb-3">
+        <ShareButtons />
         <div className="flex items-center gap-1">
           <LanguageSelector />
           <ThemeToggle />
         </div>
       </div>
 
-      {/* Share Buttons */}
+      {/* Greeting and Date */}
       <div className="mb-4">
-        <ShareButtons />
+        <p className="text-lg font-medium text-foreground">{getGreeting()}</p>
+        <p className="text-sm text-muted-foreground capitalize">{dateString}</p>
       </div>
 
-      {/* Page Title with Icon */}
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBgClass}`}>
-          {icon}
+      {/* Optional Page Title with Icon */}
+      {showTitle && icon && title && (
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBgClass || ''}`}>
+            {icon}
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
