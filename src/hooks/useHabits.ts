@@ -1,27 +1,72 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Habit } from '@/types/habit';
+import { Habit, HabitCategory, HabitTag, DEFAULT_HABIT_CATEGORIES, DEFAULT_HABIT_TAGS } from '@/types/habit';
 
 const STORAGE_KEY = 'habitflow_habits';
+const CATEGORIES_KEY = 'habitflow_habit_categories';
+const TAGS_KEY = 'habitflow_habit_tags';
 
 export function useHabits() {
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [categories, setCategories] = useState<HabitCategory[]>([]);
+  const [tags, setTags] = useState<HabitTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        setHabits(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        // Migrate old habits without tagIds
+        const migrated = parsed.map((h: any) => ({
+          ...h,
+          tagIds: h.tagIds || [],
+        }));
+        setHabits(migrated);
       } catch (e) {
         console.error('Failed to parse habits:', e);
       }
     }
+    
+    // Load categories
+    const storedCategories = localStorage.getItem(CATEGORIES_KEY);
+    if (storedCategories) {
+      try {
+        setCategories(JSON.parse(storedCategories));
+      } catch (e) {
+        setCategories(DEFAULT_HABIT_CATEGORIES);
+      }
+    } else {
+      setCategories(DEFAULT_HABIT_CATEGORIES);
+    }
+    
+    // Load tags
+    const storedTags = localStorage.getItem(TAGS_KEY);
+    if (storedTags) {
+      try {
+        setTags(JSON.parse(storedTags));
+      } catch (e) {
+        setTags(DEFAULT_HABIT_TAGS);
+      }
+    } else {
+      setTags(DEFAULT_HABIT_TAGS);
+    }
+    
     setIsLoading(false);
   }, []);
 
   const saveHabits = useCallback((newHabits: Habit[]) => {
     setHabits(newHabits);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newHabits));
+  }, []);
+
+  const saveCategories = useCallback((newCategories: HabitCategory[]) => {
+    setCategories(newCategories);
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+  }, []);
+
+  const saveTags = useCallback((newTags: HabitTag[]) => {
+    setTags(newTags);
+    localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
   }, []);
 
   const addHabit = useCallback((habit: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'streak'>) => {
@@ -31,6 +76,7 @@ export function useHabits() {
       createdAt: new Date().toISOString(),
       completedDates: [],
       streak: 0,
+      tagIds: habit.tagIds || [],
     };
     saveHabits([...habits, newHabit]);
     return newHabit;
@@ -60,19 +106,53 @@ export function useHabits() {
       newCompletedDates = [...habit.completedDates, date];
     }
 
-    // Calculate streak
     const streak = calculateStreak(newCompletedDates, habit.targetDays);
-
     updateHabit(id, { completedDates: newCompletedDates, streak });
   }, [habits, updateHabit]);
 
+  // Category management
+  const addCategory = useCallback((category: Omit<HabitCategory, 'id'>) => {
+    const newCategory = { ...category, id: crypto.randomUUID() };
+    saveCategories([...categories, newCategory]);
+  }, [categories, saveCategories]);
+
+  const updateCategory = useCallback((id: string, updates: Partial<HabitCategory>) => {
+    saveCategories(categories.map(c => c.id === id ? { ...c, ...updates } : c));
+  }, [categories, saveCategories]);
+
+  const deleteCategory = useCallback((id: string) => {
+    saveCategories(categories.filter(c => c.id !== id));
+  }, [categories, saveCategories]);
+
+  // Tag management
+  const addTag = useCallback((tag: Omit<HabitTag, 'id'>) => {
+    const newTag = { ...tag, id: crypto.randomUUID() };
+    saveTags([...tags, newTag]);
+  }, [tags, saveTags]);
+
+  const updateTag = useCallback((id: string, updates: Partial<HabitTag>) => {
+    saveTags(tags.map(t => t.id === id ? { ...t, ...updates } : t));
+  }, [tags, saveTags]);
+
+  const deleteTag = useCallback((id: string) => {
+    saveTags(tags.filter(t => t.id !== id));
+  }, [tags, saveTags]);
+
   return {
     habits,
+    categories,
+    tags,
     isLoading,
     addHabit,
     updateHabit,
     deleteHabit,
     toggleHabitCompletion,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addTag,
+    updateTag,
+    deleteTag,
   };
 }
 

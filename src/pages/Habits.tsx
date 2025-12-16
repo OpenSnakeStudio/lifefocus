@@ -28,7 +28,7 @@ interface HabitsProps {
 }
 
 export default function Habits({ openDialog, onDialogClose }: HabitsProps) {
-  const { habits, isLoading, addHabit, updateHabit, deleteHabit, toggleHabitCompletion } = useHabits();
+  const { habits, categories, tags, isLoading, addHabit, updateHabit, deleteHabit, toggleHabitCompletion } = useHabits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [deleteConfirmHabit, setDeleteConfirmHabit] = useState<Habit | null>(null);
@@ -201,6 +201,8 @@ export default function Habits({ openDialog, onDialogClose }: HabitsProps) {
         }}
         onSave={handleSaveHabit}
         habit={editingHabit}
+        categories={categories}
+        tags={tags}
       />
 
       <AlertDialog open={!!deleteConfirmHabit} onOpenChange={() => setDeleteConfirmHabit(null)}>

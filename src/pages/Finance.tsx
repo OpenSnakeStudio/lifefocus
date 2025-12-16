@@ -28,7 +28,7 @@ interface FinanceProps {
 }
 
 export default function Finance({ openDialog, onDialogClose }: FinanceProps) {
-  const { transactions, isLoading, addTransaction, updateTransaction, deleteTransaction, toggleTransactionCompletion } = useFinance();
+  const { transactions, categories, tags, isLoading, addTransaction, updateTransaction, deleteTransaction, toggleTransactionCompletion } = useFinance();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<FinanceTransaction | null>(null);
   const [deleteConfirmTransaction, setDeleteConfirmTransaction] = useState<FinanceTransaction | null>(null);
@@ -219,6 +219,8 @@ export default function Finance({ openDialog, onDialogClose }: FinanceProps) {
         }}
         onSave={handleSaveTransaction}
         transaction={editingTransaction}
+        categories={categories}
+        tags={tags}
       />
 
       <AlertDialog open={!!deleteConfirmTransaction} onOpenChange={() => setDeleteConfirmTransaction(null)}>

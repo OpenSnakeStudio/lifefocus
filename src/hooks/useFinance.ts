@@ -1,21 +1,56 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { FinanceTransaction } from '@/types/finance';
+import { FinanceTransaction, FinanceCategory, FinanceTag, DEFAULT_FINANCE_CATEGORIES, DEFAULT_FINANCE_TAGS } from '@/types/finance';
 
 const STORAGE_KEY = 'habitflow_finance';
+const CATEGORIES_KEY = 'habitflow_finance_categories';
+const TAGS_KEY = 'habitflow_finance_tags';
 
 export function useFinance() {
   const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
+  const [categories, setCategories] = useState<FinanceCategory[]>([]);
+  const [tags, setTags] = useState<FinanceTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        setTransactions(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        // Migrate old transactions
+        const migrated = parsed.map((t: any) => ({
+          ...t,
+          tagIds: t.tagIds || [],
+        }));
+        setTransactions(migrated);
       } catch (e) {
         console.error('Failed to parse transactions:', e);
       }
     }
+    
+    // Load categories
+    const storedCategories = localStorage.getItem(CATEGORIES_KEY);
+    if (storedCategories) {
+      try {
+        setCategories(JSON.parse(storedCategories));
+      } catch (e) {
+        setCategories(DEFAULT_FINANCE_CATEGORIES);
+      }
+    } else {
+      setCategories(DEFAULT_FINANCE_CATEGORIES);
+    }
+    
+    // Load tags
+    const storedTags = localStorage.getItem(TAGS_KEY);
+    if (storedTags) {
+      try {
+        setTags(JSON.parse(storedTags));
+      } catch (e) {
+        setTags(DEFAULT_FINANCE_TAGS);
+      }
+    } else {
+      setTags(DEFAULT_FINANCE_TAGS);
+    }
+    
     setIsLoading(false);
   }, []);
 
@@ -24,12 +59,23 @@ export function useFinance() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newTransactions));
   }, []);
 
+  const saveCategories = useCallback((newCategories: FinanceCategory[]) => {
+    setCategories(newCategories);
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+  }, []);
+
+  const saveTags = useCallback((newTags: FinanceTag[]) => {
+    setTags(newTags);
+    localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+  }, []);
+
   const addTransaction = useCallback((transaction: Omit<FinanceTransaction, 'id' | 'createdAt' | 'completed'>) => {
     const newTransaction: FinanceTransaction = {
       ...transaction,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       completed: false,
+      tagIds: transaction.tagIds || [],
     };
     saveTransactions([...transactions, newTransaction]);
     return newTransaction;
@@ -55,6 +101,34 @@ export function useFinance() {
       completedAt: !transaction.completed ? new Date().toISOString() : undefined
     });
   }, [transactions, updateTransaction]);
+
+  // Category management
+  const addCategory = useCallback((category: Omit<FinanceCategory, 'id'>) => {
+    const newCategory = { ...category, id: crypto.randomUUID() };
+    saveCategories([...categories, newCategory]);
+  }, [categories, saveCategories]);
+
+  const updateCategory = useCallback((id: string, updates: Partial<FinanceCategory>) => {
+    saveCategories(categories.map(c => c.id === id ? { ...c, ...updates } : c));
+  }, [categories, saveCategories]);
+
+  const deleteCategory = useCallback((id: string) => {
+    saveCategories(categories.filter(c => c.id !== id));
+  }, [categories, saveCategories]);
+
+  // Tag management
+  const addTag = useCallback((tag: Omit<FinanceTag, 'id'>) => {
+    const newTag = { ...tag, id: crypto.randomUUID() };
+    saveTags([...tags, newTag]);
+  }, [tags, saveTags]);
+
+  const updateTag = useCallback((id: string, updates: Partial<FinanceTag>) => {
+    saveTags(tags.map(t => t.id === id ? { ...t, ...updates } : t));
+  }, [tags, saveTags]);
+
+  const deleteTag = useCallback((id: string) => {
+    saveTags(tags.filter(t => t.id !== id));
+  }, [tags, saveTags]);
 
   const getTodayTransactions = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -114,11 +188,19 @@ export function useFinance() {
 
   return {
     transactions,
+    categories,
+    tags,
     isLoading,
     addTransaction,
     updateTransaction,
     deleteTransaction,
     toggleTransactionCompletion,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addTag,
+    updateTag,
+    deleteTag,
     getTodayTransactions,
     getTodayBalance,
     getTotalIncome,

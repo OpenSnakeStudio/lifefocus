@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2 } from 'lucide-react';
-import { Workout, Exercise, WORKOUT_ICONS, WORKOUT_COLORS } from '@/types/fitness';
+import { Workout, Exercise, WORKOUT_ICONS, WORKOUT_COLORS, FitnessCategory, FitnessTag } from '@/types/fitness';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -12,6 +12,8 @@ interface WorkoutDialogProps {
   onClose: () => void;
   onSave: (workout: Omit<Workout, 'id' | 'createdAt'>) => void;
   workout?: Workout | null;
+  categories: FitnessCategory[];
+  tags: FitnessTag[];
 }
 
 const WEEKDAYS = [
@@ -24,13 +26,15 @@ const WEEKDAYS = [
   { id: 6, short: 'Сб' },
 ];
 
-export function WorkoutDialog({ open, onClose, onSave, workout }: WorkoutDialogProps) {
+export function WorkoutDialog({ open, onClose, onSave, workout, categories, tags }: WorkoutDialogProps) {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState(WORKOUT_ICONS[0]);
   const [color, setColor] = useState(WORKOUT_COLORS[0]);
   const [scheduledDays, setScheduledDays] = useState<number[]>([1, 3, 5]);
   const [exercises, setExercises] = useState<Omit<Exercise, 'completed'>[]>([]);
   const [newExerciseName, setNewExerciseName] = useState('');
+  const [categoryId, setCategoryId] = useState<string | undefined>();
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -46,12 +50,16 @@ export function WorkoutDialog({ open, onClose, onSave, workout }: WorkoutDialogP
         reps: e.reps, 
         duration: e.duration 
       })));
+      setCategoryId(workout.categoryId);
+      setTagIds(workout.tagIds || []);
     } else {
       setName('');
       setIcon(WORKOUT_ICONS[0]);
       setColor(WORKOUT_COLORS[0]);
       setScheduledDays([1, 3, 5]);
       setExercises([]);
+      setCategoryId(undefined);
+      setTagIds([]);
     }
     setNewExerciseName('');
   }, [workout, open]);
@@ -63,7 +71,9 @@ export function WorkoutDialog({ open, onClose, onSave, workout }: WorkoutDialogP
       icon, 
       color, 
       scheduledDays,
-      exercises: exercises.map(e => ({ ...e, completed: false }))
+      exercises: exercises.map(e => ({ ...e, completed: false })),
+      categoryId,
+      tagIds,
     });
     onClose();
   };
@@ -91,6 +101,14 @@ export function WorkoutDialog({ open, onClose, onSave, workout }: WorkoutDialogP
 
   const updateExercise = (id: string, updates: Partial<Exercise>) => {
     setExercises(exercises.map(e => e.id === id ? { ...e, ...updates } : e));
+  };
+
+  const toggleTag = (tagId: string) => {
+    if (tagIds.includes(tagId)) {
+      setTagIds(tagIds.filter(id => id !== tagId));
+    } else {
+      setTagIds([...tagIds, tagId]);
+    }
   };
 
   return (
@@ -135,6 +153,71 @@ export function WorkoutDialog({ open, onClose, onSave, workout }: WorkoutDialogP
                 className="bg-background border-border"
               />
             </div>
+
+            {/* Category */}
+            {categories.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('category')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setCategoryId(undefined)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                      !categoryId
+                        ? "bg-fitness text-white"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    {t('uncategorized')}
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategoryId(cat.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                        categoryId === cat.id
+                          ? "text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                      style={categoryId === cat.id ? { backgroundColor: cat.color } : undefined}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('tagsLabel')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                        tagIds.includes(tag.id)
+                          ? "text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                      style={tagIds.includes(tag.id) ? { backgroundColor: tag.color } : undefined}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Scheduled Days */}
             <div className="mb-6">

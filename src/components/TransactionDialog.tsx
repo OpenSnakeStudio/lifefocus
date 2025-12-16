@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { FinanceTransaction, FINANCE_CATEGORIES } from '@/types/finance';
+import { FinanceTransaction, FINANCE_CATEGORIES, FinanceCategory, FinanceTag } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -12,14 +12,18 @@ interface TransactionDialogProps {
   onClose: () => void;
   onSave: (transaction: Omit<FinanceTransaction, 'id' | 'createdAt' | 'completed'>) => void;
   transaction?: FinanceTransaction | null;
+  categories: FinanceCategory[];
+  tags: FinanceTag[];
 }
 
-export function TransactionDialog({ open, onClose, onSave, transaction }: TransactionDialogProps) {
+export function TransactionDialog({ open, onClose, onSave, transaction, categories, tags }: TransactionDialogProps) {
   const [name, setName] = useState('');
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(FINANCE_CATEGORIES[4].id);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [customCategoryId, setCustomCategoryId] = useState<string | undefined>();
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -29,12 +33,16 @@ export function TransactionDialog({ open, onClose, onSave, transaction }: Transa
       setAmount(transaction.amount.toString());
       setCategory(transaction.category);
       setDate(transaction.date);
+      setCustomCategoryId(transaction.customCategoryId);
+      setTagIds(transaction.tagIds || []);
     } else {
       setName('');
       setType('expense');
       setAmount('');
       setCategory(FINANCE_CATEGORIES[4].id);
       setDate(new Date().toISOString().split('T')[0]);
+      setCustomCategoryId(undefined);
+      setTagIds([]);
     }
   }, [transaction, open]);
 
@@ -45,7 +53,9 @@ export function TransactionDialog({ open, onClose, onSave, transaction }: Transa
       type, 
       amount: parseFloat(amount), 
       category, 
-      date 
+      date,
+      customCategoryId,
+      tagIds,
     });
     onClose();
   };
@@ -53,6 +63,14 @@ export function TransactionDialog({ open, onClose, onSave, transaction }: Transa
   const filteredCategories = FINANCE_CATEGORIES.filter(c => 
     c.type === type || c.type === undefined
   );
+
+  const toggleTag = (tagId: string) => {
+    if (tagIds.includes(tagId)) {
+      setTagIds(tagIds.filter(id => id !== tagId));
+    } else {
+      setTagIds([...tagIds, tagId]);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -69,7 +87,7 @@ export function TransactionDialog({ open, onClose, onSave, transaction }: Transa
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-x-4 top-[10%] bottom-24 max-w-md mx-auto bg-card rounded-3xl p-6 shadow-lg z-50 overflow-y-auto"
+            className="fixed inset-x-4 top-[5%] bottom-24 max-w-md mx-auto bg-card rounded-3xl p-6 shadow-lg z-50 overflow-y-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -178,6 +196,71 @@ export function TransactionDialog({ open, onClose, onSave, transaction }: Transa
                 ))}
               </div>
             </div>
+
+            {/* Custom Category */}
+            {categories.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('categoriesLabel')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setCustomCategoryId(undefined)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                      !customCategoryId
+                        ? "bg-finance text-white"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    {t('uncategorized')}
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCustomCategoryId(cat.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                        customCategoryId === cat.id
+                          ? "text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                      style={customCategoryId === cat.id ? { backgroundColor: cat.color } : undefined}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  {t('tagsLabel')}
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                        tagIds.includes(tag.id)
+                          ? "text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                      style={tagIds.includes(tag.id) ? { backgroundColor: tag.color } : undefined}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Save Button */}
             <Button

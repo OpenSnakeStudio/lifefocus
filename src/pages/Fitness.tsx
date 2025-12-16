@@ -25,7 +25,7 @@ interface FitnessProps {
 }
 
 export default function Fitness({ openDialog, onDialogClose }: FitnessProps) {
-  const { workouts, isLoading, addWorkout, updateWorkout, deleteWorkout, toggleExerciseCompletion, getTodayWorkouts } = useFitness();
+  const { workouts, categories, tags, isLoading, addWorkout, updateWorkout, deleteWorkout, toggleExerciseCompletion, getTodayWorkouts } = useFitness();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [deleteConfirmWorkout, setDeleteConfirmWorkout] = useState<Workout | null>(null);
@@ -167,6 +167,8 @@ export default function Fitness({ openDialog, onDialogClose }: FitnessProps) {
         }}
         onSave={handleSaveWorkout}
         workout={editingWorkout}
+        categories={categories}
+        tags={tags}
       />
 
       <AlertDialog open={!!deleteConfirmWorkout} onOpenChange={() => setDeleteConfirmWorkout(null)}>

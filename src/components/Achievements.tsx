@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Award, Target, Flame, Dumbbell, CheckCircle2, Lock } from 'lucide-react';
+import { Award, Target, Flame, Dumbbell, CheckCircle2, Lock, Share2 } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useHabits } from '@/hooks/useHabits';
 import { useTasks } from '@/hooks/useTasks';
 import { useFitness } from '@/hooks/useFitness';
 import { format, subMonths, startOfDay, isWithinInterval, parseISO } from 'date-fns';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 type BadgePeriod = 1 | 3 | 6 | 12;
 

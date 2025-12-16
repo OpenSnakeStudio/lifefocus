@@ -1,27 +1,32 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Habit, HABIT_ICONS, HABIT_COLORS } from '@/types/habit';
+import { Habit, HABIT_ICONS, HABIT_COLORS, HabitCategory, HabitTag } from '@/types/habit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { TranslationKey } from '@/i18n/translations';
+import { cn } from '@/lib/utils';
 
 interface HabitDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (habit: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'streak'>) => void;
   habit?: Habit | null;
+  categories: HabitCategory[];
+  tags: HabitTag[];
 }
 
 const WEEKDAY_KEYS: TranslationKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
-export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) {
+export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: HabitDialogProps) {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState(HABIT_ICONS[0]);
   const [color, setColor] = useState(HABIT_COLORS[0]);
   const [targetDays, setTargetDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [categoryId, setCategoryId] = useState<string | undefined>();
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -30,11 +35,15 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
       setIcon(habit.icon);
       setColor(habit.color);
       setTargetDays(habit.targetDays);
+      setCategoryId(habit.categoryId);
+      setTagIds(habit.tagIds || []);
     } else {
       setName('');
       setIcon(HABIT_ICONS[0]);
       setColor(HABIT_COLORS[0]);
       setTargetDays([1, 2, 3, 4, 5]);
+      setCategoryId(undefined);
+      setTagIds([]);
     }
   }, [habit, open]);
 
@@ -46,6 +55,8 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
       color,
       frequency: 'weekly',
       targetDays,
+      categoryId,
+      tagIds,
     });
     onClose();
   };
@@ -55,6 +66,14 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
       setTargetDays(targetDays.filter(d => d !== day));
     } else {
       setTargetDays([...targetDays, day]);
+    }
+  };
+
+  const toggleTag = (tagId: string) => {
+    if (tagIds.includes(tagId)) {
+      setTagIds(tagIds.filter(id => id !== tagId));
+    } else {
+      setTagIds([...tagIds, tagId]);
     }
   };
 
@@ -100,6 +119,67 @@ export function HabitDialog({ open, onClose, onSave, habit }: HabitDialogProps) 
                   className="h-12 text-base"
                 />
               </div>
+
+              {/* Category */}
+              {categories.length > 0 && (
+                <div className="space-y-2">
+                  <Label>{t('category')}</Label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setCategoryId(undefined)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                        !categoryId
+                          ? "bg-habit text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {t('uncategorized')}
+                    </button>
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setCategoryId(cat.id)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                          categoryId === cat.id
+                            ? "text-white"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                        style={categoryId === cat.id ? { backgroundColor: cat.color } : undefined}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags */}
+              {tags.length > 0 && (
+                <div className="space-y-2">
+                  <Label>{t('tagsLabel')}</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        onClick={() => toggleTag(tag.id)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5",
+                          tagIds.includes(tag.id)
+                            ? "text-white"
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                        style={tagIds.includes(tag.id) ? { backgroundColor: tag.color } : undefined}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Icon */}
               <div className="space-y-2">

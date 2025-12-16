@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Workout, WorkoutCompletion } from '@/types/fitness';
+import { Workout, WorkoutCompletion, FitnessCategory, FitnessTag, DEFAULT_FITNESS_CATEGORIES, DEFAULT_FITNESS_TAGS } from '@/types/fitness';
 
 const WORKOUTS_KEY = 'habitflow_workouts';
 const COMPLETIONS_KEY = 'habitflow_workout_completions';
+const CATEGORIES_KEY = 'habitflow_fitness_categories';
+const TAGS_KEY = 'habitflow_fitness_tags';
 
 export function useFitness() {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [completions, setCompletions] = useState<WorkoutCompletion[]>([]);
+  const [categories, setCategories] = useState<FitnessCategory[]>([]);
+  const [tags, setTags] = useState<FitnessTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -15,7 +19,13 @@ export function useFitness() {
     
     if (storedWorkouts) {
       try {
-        setWorkouts(JSON.parse(storedWorkouts));
+        const parsed = JSON.parse(storedWorkouts);
+        // Migrate old workouts without tagIds
+        const migrated = parsed.map((w: any) => ({
+          ...w,
+          tagIds: w.tagIds || [],
+        }));
+        setWorkouts(migrated);
       } catch (e) {
         console.error('Failed to parse workouts:', e);
       }
@@ -27,6 +37,30 @@ export function useFitness() {
       } catch (e) {
         console.error('Failed to parse completions:', e);
       }
+    }
+    
+    // Load categories
+    const storedCategories = localStorage.getItem(CATEGORIES_KEY);
+    if (storedCategories) {
+      try {
+        setCategories(JSON.parse(storedCategories));
+      } catch (e) {
+        setCategories(DEFAULT_FITNESS_CATEGORIES);
+      }
+    } else {
+      setCategories(DEFAULT_FITNESS_CATEGORIES);
+    }
+    
+    // Load tags
+    const storedTags = localStorage.getItem(TAGS_KEY);
+    if (storedTags) {
+      try {
+        setTags(JSON.parse(storedTags));
+      } catch (e) {
+        setTags(DEFAULT_FITNESS_TAGS);
+      }
+    } else {
+      setTags(DEFAULT_FITNESS_TAGS);
     }
     
     setIsLoading(false);
@@ -42,11 +76,22 @@ export function useFitness() {
     localStorage.setItem(COMPLETIONS_KEY, JSON.stringify(newCompletions));
   }, []);
 
+  const saveCategories = useCallback((newCategories: FitnessCategory[]) => {
+    setCategories(newCategories);
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+  }, []);
+
+  const saveTags = useCallback((newTags: FitnessTag[]) => {
+    setTags(newTags);
+    localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+  }, []);
+
   const addWorkout = useCallback((workout: Omit<Workout, 'id' | 'createdAt'>) => {
     const newWorkout: Workout = {
       ...workout,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
+      tagIds: workout.tagIds || [],
     };
     saveWorkouts([...workouts, newWorkout]);
     return newWorkout;
@@ -90,6 +135,34 @@ export function useFitness() {
     }
   }, [completions, saveCompletions]);
 
+  // Category management
+  const addCategory = useCallback((category: Omit<FitnessCategory, 'id'>) => {
+    const newCategory = { ...category, id: crypto.randomUUID() };
+    saveCategories([...categories, newCategory]);
+  }, [categories, saveCategories]);
+
+  const updateCategory = useCallback((id: string, updates: Partial<FitnessCategory>) => {
+    saveCategories(categories.map(c => c.id === id ? { ...c, ...updates } : c));
+  }, [categories, saveCategories]);
+
+  const deleteCategory = useCallback((id: string) => {
+    saveCategories(categories.filter(c => c.id !== id));
+  }, [categories, saveCategories]);
+
+  // Tag management
+  const addTag = useCallback((tag: Omit<FitnessTag, 'id'>) => {
+    const newTag = { ...tag, id: crypto.randomUUID() };
+    saveTags([...tags, newTag]);
+  }, [tags, saveTags]);
+
+  const updateTag = useCallback((id: string, updates: Partial<FitnessTag>) => {
+    saveTags(tags.map(t => t.id === id ? { ...t, ...updates } : t));
+  }, [tags, saveTags]);
+
+  const deleteTag = useCallback((id: string) => {
+    saveTags(tags.filter(t => t.id !== id));
+  }, [tags, saveTags]);
+
   const getTodayWorkouts = useCallback(() => {
     const today = new Date().getDay();
     return workouts.filter(w => w.scheduledDays.includes(today));
@@ -124,11 +197,19 @@ export function useFitness() {
   return {
     workouts,
     completions,
+    categories,
+    tags,
     isLoading,
     addWorkout,
     updateWorkout,
     deleteWorkout,
     toggleExerciseCompletion,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    addTag,
+    updateTag,
+    deleteTag,
     getTodayWorkouts,
     getTodayExercises,
     isExerciseCompleted,

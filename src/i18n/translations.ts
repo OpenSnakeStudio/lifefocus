@@ -209,6 +209,14 @@ export const translations = {
     months3: '3 месяца',
     months6: '6 месяцев',
     months12: '12 месяцев',
+    newAchievement: 'Новое достижение!',
+    achievementUnlocked: 'Вы получили награду',
+    shareAchievement: 'Поделиться достижением',
+    
+    // Settings
+    habitSettings: 'Настройки привычек',
+    financeSettings: 'Настройки финансов',
+    fitnessSettings: 'Настройки фитнеса',
 
     // Finance
     financeTracker: 'Трекер финансов',
