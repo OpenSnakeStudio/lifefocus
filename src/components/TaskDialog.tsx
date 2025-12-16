@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Task, TASK_ICONS, TASK_COLORS } from '@/types/task';
+import { X, Plus } from 'lucide-react';
+import { Task, TaskCategory, TaskTag, TaskStatus, TASK_ICONS, TASK_COLORS } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -12,14 +12,25 @@ interface TaskDialogProps {
   onClose: () => void;
   onSave: (task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => void;
   task?: Task | null;
+  categories: TaskCategory[];
+  tags: TaskTag[];
+  onAddCategory?: (category: Omit<TaskCategory, 'id'>) => void;
+  onAddTag?: (tag: Omit<TaskTag, 'id'>) => void;
 }
 
-export function TaskDialog({ open, onClose, onSave, task }: TaskDialogProps) {
+export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAddCategory, onAddTag }: TaskDialogProps) {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState(TASK_ICONS[0]);
   const [color, setColor] = useState(TASK_COLORS[0]);
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0]);
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [status, setStatus] = useState<TaskStatus>('not_started');
+  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [showNewTag, setShowNewTag] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -29,25 +40,59 @@ export function TaskDialog({ open, onClose, onSave, task }: TaskDialogProps) {
       setColor(task.color);
       setDueDate(task.dueDate);
       setPriority(task.priority);
+      setStatus(task.status);
+      setCategoryId(task.categoryId);
+      setTagIds(task.tagIds);
     } else {
       setName('');
       setIcon(TASK_ICONS[0]);
       setColor(TASK_COLORS[0]);
       setDueDate(new Date().toISOString().split('T')[0]);
       setPriority('medium');
+      setStatus('not_started');
+      setCategoryId(undefined);
+      setTagIds([]);
     }
   }, [task, open]);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onSave({ name: name.trim(), icon, color, dueDate, priority });
+    onSave({ name: name.trim(), icon, color, dueDate, priority, status, categoryId, tagIds });
     onClose();
+  };
+
+  const handleAddCategory = () => {
+    if (newCategoryName.trim() && onAddCategory) {
+      onAddCategory({ name: newCategoryName.trim(), color: TASK_COLORS[Math.floor(Math.random() * TASK_COLORS.length)] });
+      setNewCategoryName('');
+      setShowNewCategory(false);
+    }
+  };
+
+  const handleAddTag = () => {
+    if (newTagName.trim() && onAddTag) {
+      onAddTag({ name: newTagName.trim(), color: TASK_COLORS[Math.floor(Math.random() * TASK_COLORS.length)] });
+      setNewTagName('');
+      setShowNewTag(false);
+    }
+  };
+
+  const toggleTag = (id: string) => {
+    setTagIds(prev => 
+      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+    );
   };
 
   const priorities: Array<{ value: 'low' | 'medium' | 'high'; label: string }> = [
     { value: 'low', label: t('priorityLow') },
     { value: 'medium', label: t('priorityMedium') },
     { value: 'high', label: t('priorityHigh') },
+  ];
+
+  const statuses: Array<{ value: TaskStatus; label: string }> = [
+    { value: 'not_started', label: t('statusNotStarted') },
+    { value: 'in_progress', label: t('statusInProgress') },
+    { value: 'done', label: t('statusDone') },
   ];
 
   return (
@@ -107,7 +152,7 @@ export function TaskDialog({ open, onClose, onSave, task }: TaskDialogProps) {
             </div>
 
             {/* Priority */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-sm font-medium text-foreground mb-2">
                 {t('priority')}
               </label>
@@ -129,8 +174,128 @@ export function TaskDialog({ open, onClose, onSave, task }: TaskDialogProps) {
               </div>
             </div>
 
+            {/* Status */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t('status')}
+              </label>
+              <div className="flex gap-2">
+                {statuses.map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setStatus(s.value)}
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-xl text-xs font-medium transition-all",
+                      status === s.value
+                        ? "bg-task text-white"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t('category')}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCategoryId(categoryId === cat.id ? undefined : cat.id)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-sm transition-all",
+                      categoryId === cat.id
+                        ? "ring-2 ring-offset-2 ring-offset-card"
+                        : "opacity-60 hover:opacity-100"
+                    )}
+                    style={{ 
+                      backgroundColor: cat.color + '33', 
+                      color: cat.color,
+                      ...(categoryId === cat.id && { ringColor: cat.color })
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+                {showNewCategory ? (
+                  <div className="flex gap-1">
+                    <Input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="..."
+                      className="h-7 w-24 text-sm"
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                    />
+                    <Button size="sm" onClick={handleAddCategory} className="h-7 px-2">
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowNewCategory(true)}
+                    className="px-3 py-1 rounded-full text-sm bg-muted text-muted-foreground hover:bg-muted/80"
+                  >
+                    + {t('addCategory')}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                {t('tagsLabel')}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.id)}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-sm transition-all",
+                      tagIds.includes(tag.id)
+                        ? "ring-2 ring-offset-2 ring-offset-card"
+                        : "opacity-60 hover:opacity-100"
+                    )}
+                    style={{ 
+                      backgroundColor: tag.color + '33', 
+                      color: tag.color 
+                    }}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+                {showNewTag ? (
+                  <div className="flex gap-1">
+                    <Input
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      placeholder="..."
+                      className="h-7 w-24 text-sm"
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                    />
+                    <Button size="sm" onClick={handleAddTag} className="h-7 px-2">
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowNewTag(true)}
+                    className="px-3 py-1 rounded-full text-sm bg-muted text-muted-foreground hover:bg-muted/80"
+                  >
+                    + {t('addTag')}
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Icon Selection */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-sm font-medium text-foreground mb-2">
                 {t('icon')}
               </label>

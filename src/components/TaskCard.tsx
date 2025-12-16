@@ -33,6 +33,18 @@ export function TaskCard({ task, index, onToggle, onEdit, onDelete }: TaskCardPr
     high: t('priorityHigh'),
   };
 
+  const statusLabels = {
+    not_started: t('statusNotStarted'),
+    in_progress: t('statusInProgress'),
+    done: t('statusDone'),
+  };
+
+  const statusColors = {
+    not_started: 'bg-muted text-muted-foreground',
+    in_progress: 'bg-amber-500/20 text-amber-600',
+    done: 'bg-task/20 text-task',
+  };
+
   const isOverdue = !task.completed && new Date(task.dueDate) < new Date(new Date().toDateString());
   const isToday = task.dueDate === new Date().toISOString().split('T')[0];
 
@@ -105,6 +117,9 @@ export function TaskCard({ task, index, onToggle, onEdit, onDelete }: TaskCardPr
 
           {/* Meta info */}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className={cn("text-xs px-2 py-0.5 rounded-full", statusColors[task.status])}>
+              {statusLabels[task.status]}
+            </span>
             <span className={cn("text-xs px-2 py-0.5 rounded-full", priorityColors[task.priority])}>
               {priorityLabels[task.priority]}
             </span>

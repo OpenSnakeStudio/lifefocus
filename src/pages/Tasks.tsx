@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Sparkles, CheckSquare } from 'lucide-react';
 import { useTasks } from '@/hooks/useTasks';
-import { Task } from '@/types/task';
+import { Task, TaskStatus } from '@/types/task';
 import { TaskCard } from '@/components/TaskCard';
 import { TaskDialog } from '@/components/TaskDialog';
+import { TaskViewTabs } from '@/components/TaskViewTabs';
+import { TaskProgressView } from '@/components/TaskProgressView';
+import { TaskCalendarView } from '@/components/TaskCalendarView';
+import { TaskFilters } from '@/components/TaskFilters';
+import { PeriodSelector } from '@/components/PeriodSelector';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -25,10 +30,19 @@ interface TasksProps {
 }
 
 export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
-  const { tasks, isLoading, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTasks();
+  const { 
+    tasks, categories, tags, isLoading, 
+    addTask, updateTask, deleteTask, toggleTaskCompletion,
+    addCategory, addTag
+  } = useTasks();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteConfirmTask, setDeleteConfirmTask] = useState<Task | null>(null);
+  const [activeView, setActiveView] = useState<'list' | 'calendar' | 'progress'>('list');
+  const [period, setPeriod] = useState<'7' | '14' | '30'>('7');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>([]);
   const { t } = useTranslation();
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {
@@ -58,11 +72,29 @@ export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
     }
   };
 
+  // Filter tasks
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      if (selectedCategories.length > 0 && !selectedCategories.includes(task.categoryId || '')) {
+        return false;
+      }
+      if (selectedTags.length > 0 && !task.tagIds.some(id => selectedTags.includes(id))) {
+        return false;
+      }
+      if (selectedStatuses.length > 0 && !selectedStatuses.includes(task.status)) {
+        return false;
+      }
+      return true;
+    });
+  }, [tasks, selectedCategories, selectedTags, selectedStatuses]);
+
   // Sort: incomplete first, then by due date
-  const sortedTasks = [...tasks].sort((a, b) => {
-    if (a.completed !== b.completed) return a.completed ? 1 : -1;
-    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-  });
+  const sortedTasks = useMemo(() => {
+    return [...filteredTasks].sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+  }, [filteredTasks]);
 
   if (isLoading) {
     return (
@@ -86,52 +118,102 @@ export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
           subtitle={`${tasks.length} ${t('tasks').toLowerCase()}`}
         />
 
+        {/* View Tabs */}
+        <div className="mt-4">
+          <TaskViewTabs activeView={activeView} onViewChange={setActiveView} />
+        </div>
+
+        {/* Period Selector for calendar/progress views */}
+        {activeView !== 'list' && (
+          <div className="mt-4">
+            <PeriodSelector value={period} onValueChange={setPeriod} />
+          </div>
+        )}
+
+        {/* Filters for list view */}
+        {activeView === 'list' && (
+          <div className="mt-4">
+            <TaskFilters
+              categories={categories}
+              tags={tags}
+              selectedCategories={selectedCategories}
+              selectedTags={selectedTags}
+              selectedStatuses={selectedStatuses}
+              onCategoriesChange={setSelectedCategories}
+              onTagsChange={setSelectedTags}
+              onStatusesChange={setSelectedStatuses}
+            />
+          </div>
+        )}
+
         {/* Content */}
         <div className="mt-6">
           <AnimatePresence mode="popLayout">
-            {sortedTasks.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
-                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-task/20 to-task/10 flex items-center justify-center">
-                  <CheckSquare className="w-10 h-10 text-task" />
-                </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  {t('startTasks')}
-                </h3>
-                <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-                  {t('createFirstTask')}
-                </p>
-                <Button 
-                  onClick={() => setDialogOpen(true)}
-                  className="bg-task text-white hover:bg-task/90"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('createTask')}
-                </Button>
-              </motion.div>
-            ) : (
-              <div className="space-y-3">
-                {sortedTasks.map((task, index) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    index={index}
-                    onToggle={() => toggleTaskCompletion(task.id)}
-                    onEdit={() => handleEditTask(task)}
-                    onDelete={() => handleDeleteTask(task)}
-                  />
-                ))}
-              </div>
+            {activeView === 'list' && (
+              <>
+                {sortedTasks.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center py-12"
+                  >
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-task/20 to-task/10 flex items-center justify-center">
+                      <CheckSquare className="w-10 h-10 text-task" />
+                    </div>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      {t('startTasks')}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
+                      {t('createFirstTask')}
+                    </p>
+                    <Button 
+                      onClick={() => setDialogOpen(true)}
+                      className="bg-task text-white hover:bg-task/90"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {t('createTask')}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-3">
+                    {sortedTasks.map((task, index) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        index={index}
+                        onToggle={() => toggleTaskCompletion(task.id)}
+                        onEdit={() => handleEditTask(task)}
+                        onDelete={() => handleDeleteTask(task)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeView === 'calendar' && (
+              <TaskCalendarView
+                tasks={filteredTasks}
+                categories={categories}
+                period={parseInt(period) as 7 | 14 | 30}
+                onToggleTask={toggleTaskCompletion}
+              />
+            )}
+
+            {activeView === 'progress' && (
+              <TaskProgressView
+                tasks={filteredTasks}
+                categories={categories}
+                tags={tags}
+                period={parseInt(period) as 7 | 14 | 30}
+              />
             )}
           </AnimatePresence>
         </div>
       </div>
 
       {/* FAB */}
-      {sortedTasks.length > 0 && (
+      {tasks.length > 0 && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -161,6 +243,10 @@ export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
         }}
         onSave={handleSaveTask}
         task={editingTask}
+        categories={categories}
+        tags={tags}
+        onAddCategory={addCategory}
+        onAddTag={addTag}
       />
 
       <AlertDialog open={!!deleteConfirmTask} onOpenChange={() => setDeleteConfirmTask(null)}>

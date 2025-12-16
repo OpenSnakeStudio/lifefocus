@@ -1,3 +1,17 @@
+export type TaskStatus = 'not_started' | 'in_progress' | 'done';
+
+export interface TaskCategory {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TaskTag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Task {
   id: string;
   name: string;
@@ -8,6 +22,9 @@ export interface Task {
   completedAt?: string;
   createdAt: string;
   priority: 'low' | 'medium' | 'high';
+  status: TaskStatus;
+  categoryId?: string;
+  tagIds: string[];
 }
 
 export const TASK_ICONS = [
@@ -24,4 +41,17 @@ export const TASK_COLORS = [
   'hsl(145, 70%, 45%)', // green
   'hsl(45, 90%, 50%)',  // yellow
   'hsl(0, 70%, 55%)',   // red
+];
+
+export const DEFAULT_CATEGORIES: TaskCategory[] = [
+  { id: 'work', name: 'Работа', color: 'hsl(200, 80%, 50%)' },
+  { id: 'personal', name: 'Личное', color: 'hsl(262, 80%, 55%)' },
+  { id: 'home', name: 'Дом', color: 'hsl(35, 95%, 55%)' },
+  { id: 'health', name: 'Здоровье', color: 'hsl(145, 70%, 45%)' },
+];
+
+export const DEFAULT_TAGS: TaskTag[] = [
+  { id: 'urgent', name: 'Срочно', color: 'hsl(0, 70%, 55%)' },
+  { id: 'important', name: 'Важно', color: 'hsl(45, 90%, 50%)' },
+  { id: 'later', name: 'Потом', color: 'hsl(200, 30%, 60%)' },
 ];
