@@ -15,47 +15,39 @@ function getQualityColor(value: number): string {
   return 'hsl(262, 80%, 55%)'; // purple (100%)
 }
 
-export function DayQualityRing({ value, size = 56 }: DayQualityRingProps) {
-  const strokeWidth = 4;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
+function getContrastColor(value: number): string {
+  // White text for darker colors, dark text for yellow
+  if (value <= 20) return 'white'; // red
+  if (value <= 40) return 'white'; // orange
+  if (value <= 60) return 'hsl(0, 0%, 15%)'; // yellow - dark text
+  if (value <= 80) return 'white'; // green
+  if (value <= 90) return 'white'; // cyan
+  if (value < 100) return 'white'; // blue
+  return 'white'; // purple
+}
+
+export function DayQualityRing({ value, size = 84 }: DayQualityRingProps) {
   const color = getQualityColor(value);
+  const textColor = getContrastColor(value);
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg
-        width={size}
-        height={size}
-        className="progress-ring"
+    <motion.div 
+      className="flex items-center justify-center rounded-full shadow-lg"
+      style={{ 
+        width: size, 
+        height: size, 
+        backgroundColor: color 
+      }}
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+    >
+      <span 
+        className="text-xl font-bold"
+        style={{ color: textColor }}
       >
-        {/* Background circle */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--muted))"
-          strokeWidth={strokeWidth}
-        />
-        {/* Progress circle */}
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-bold text-foreground">{value}</span>
-      </div>
-    </div>
+        {value}
+      </span>
+    </motion.div>
   );
 }
