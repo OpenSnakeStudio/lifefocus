@@ -6,8 +6,8 @@ import { useTimeTracker } from '@/hooks/useTimeTracker';
 import { useTasks } from '@/hooks/useTasks';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+
+type Period = 'today' | 'week' | 'month';
 
 export function TimeTracker() {
   const { t } = useTranslation();
@@ -18,8 +18,6 @@ export function TimeTracker() {
     startTimer,
     stopTimer,
     deleteEntry,
-    getTodayEntries,
-    getTodayTotalTime,
     formatDuration,
     isTimerRunning,
   } = useTimeTracker();
@@ -28,21 +26,53 @@ export function TimeTracker() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedSubtaskId, setSelectedSubtaskId] = useState<string | null>(null);
   const [isTaskSelectorOpen, setIsTaskSelectorOpen] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('today');
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
-  const todayEntries = getTodayEntries();
-  const todayTotal = getTodayTotalTime();
+
+  // Filter entries by period
+  const filteredEntries = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    let startDate: Date;
+    switch (selectedPeriod) {
+      case 'today':
+        startDate = startOfToday;
+        break;
+      case 'week':
+        startDate = new Date(startOfToday);
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate = new Date(startOfToday);
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+    }
+    
+    return entries.filter(e => new Date(e.startTime) >= startDate);
+  }, [entries, selectedPeriod]);
+
+  const totalTime = useMemo(() => {
+    return filteredEntries.reduce((sum, e) => sum + e.duration, 0);
+  }, [filteredEntries]);
 
   const groupedEntries = useMemo(() => {
-    const groups: Record<string, typeof entries> = {};
-    todayEntries.forEach(entry => {
+    const groups: Record<string, { name: string; icon?: string; duration: number; entryIds: string[] }> = {};
+    filteredEntries.forEach(entry => {
       const task = tasks.find(t => t.id === entry.taskId);
-      const key = task?.name || 'Без задачи';
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(entry);
+      const key = entry.taskId || 'none';
+      const name = task?.name || 'Без задачи';
+      const icon = task?.icon;
+      
+      if (!groups[key]) {
+        groups[key] = { name, icon, duration: 0, entryIds: [] };
+      }
+      groups[key].duration += entry.duration;
+      groups[key].entryIds.push(entry.id);
     });
-    return groups;
-  }, [todayEntries, tasks]);
+    return Object.entries(groups).sort((a, b) => b[1].duration - a[1].duration);
+  }, [filteredEntries, tasks]);
 
   const handleStart = () => {
     if (selectedTaskId) {
@@ -56,22 +86,32 @@ export function TimeTracker() {
     setIsTaskSelectorOpen(false);
   };
 
+  const handleDeleteTaskEntries = (entryIds: string[]) => {
+    entryIds.forEach(id => deleteEntry(id));
+  };
+
+  const periodLabels: Record<Period, string> = {
+    today: t('today') || 'Сегодня',
+    week: t('week') || 'Неделя',
+    month: t('month') || 'Месяц',
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Active timer display */}
-      <div className="text-center py-6">
-        <div className="text-5xl font-bold text-foreground tracking-tight">
+      <div className="text-center py-4">
+        <div className="text-4xl font-bold text-foreground tracking-tight">
           {formatDuration(isTimerRunning ? elapsedTime : 0)}
         </div>
         {isTimerRunning && activeTimer && (
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-1">
             {tasks.find(t => t.id === activeTimer.taskId)?.name || 'Задача'}
           </p>
         )}
       </div>
 
       {/* Task selector */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div className="relative">
           <Button
             variant="outline"
@@ -100,7 +140,7 @@ export function TimeTracker() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-64 overflow-auto"
+                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-auto"
               >
                 {tasks.filter(t => !t.completed).map(task => (
                   <button
@@ -160,9 +200,9 @@ export function TimeTracker() {
             size="lg"
             variant="destructive"
             onClick={stopTimer}
-            className="w-32 h-12 gap-2"
+            className="w-28 h-10 gap-2"
           >
-            <Square className="w-5 h-5" />
+            <Square className="w-4 h-4" />
             {t('stop') || 'Стоп'}
           </Button>
         ) : (
@@ -170,49 +210,63 @@ export function TimeTracker() {
             size="lg"
             onClick={handleStart}
             disabled={!selectedTaskId}
-            className="w-32 h-12 gap-2 bg-service hover:bg-service/90"
+            className="w-28 h-10 gap-2 bg-service hover:bg-service/90"
           >
-            <Play className="w-5 h-5" />
+            <Play className="w-4 h-4" />
             {t('start') || 'Старт'}
           </Button>
         )}
       </div>
 
-      {/* Today's summary */}
+      {/* Period selector */}
+      <div className="flex justify-center gap-2">
+        {(['today', 'week', 'month'] as Period[]).map((period) => (
+          <Button
+            key={period}
+            variant={selectedPeriod === period ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedPeriod(period)}
+          >
+            {periodLabels[period]}
+          </Button>
+        ))}
+      </div>
+
+      {/* Summary */}
       <div className="bg-muted/50 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-semibold text-foreground flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            {t('todayTime') || 'Время за сегодня'}
+            {periodLabels[selectedPeriod]}
           </h4>
           <span className="text-lg font-bold text-service">
-            {formatDuration(todayTotal)}
+            {formatDuration(totalTime)}
           </span>
         </div>
 
-        {Object.keys(groupedEntries).length > 0 ? (
+        {groupedEntries.length > 0 ? (
           <div className="space-y-2">
-            {Object.entries(groupedEntries).map(([taskName, taskEntries]) => {
-              const totalTime = taskEntries.reduce((sum, e) => sum + e.duration, 0);
-              return (
-                <div key={taskName} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{taskName}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">
-                      {formatDuration(totalTime)}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => taskEntries.forEach(e => deleteEntry(e.id))}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+            {groupedEntries.map(([key, data]) => (
+              <div key={key} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  {data.icon && <span>{data.icon}</span>}
+                  <span>{data.name}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground">
+                    {formatDuration(data.duration)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleDeleteTaskEntries(data.entryIds)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-2">

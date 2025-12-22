@@ -209,6 +209,8 @@ export function usePomodoro() {
     timeLeft,
     isRunning,
     completedSessions,
+    currentTaskId,
+    currentSubtaskId,
     start,
     pause,
     reset,
