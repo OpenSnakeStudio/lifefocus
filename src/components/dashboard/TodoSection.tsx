@@ -70,8 +70,8 @@ export function TodoSection({
       <motion.button
         onClick={handleRingClick}
         className={cn(
-          "w-full rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-card",
-          compact ? "h-28" : "aspect-square"
+          "w-full rounded-2xl shadow-card flex items-center justify-center",
+          compact ? "h-14 p-2 gap-3" : "aspect-square p-4 flex-col gap-2"
         )}
         style={{ backgroundColor: color }}
         initial={{ opacity: 0, scale: 0.9 }}
@@ -85,22 +85,22 @@ export function TodoSection({
         <motion.div 
           className={cn(
             "rounded-full flex items-center justify-center bg-white/20",
-            compact ? "w-10 h-10" : "w-14 h-14"
+            compact ? "w-8 h-8" : "w-14 h-14"
           )}
           layoutId={`ring-${title}`}
         >
-          <span className={cn("font-bold text-white", compact ? "text-lg" : "text-xl")}>
+          <span className={cn("font-bold text-white", compact ? "text-sm" : "text-xl")}>
             {incompleteItems.length}
           </span>
         </motion.div>
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center", compact ? "gap-1.5" : "gap-2")}>
           <div className={cn(
             "rounded-lg flex items-center justify-center bg-white/20",
-            compact ? "w-5 h-5" : "w-6 h-6"
+            compact ? "w-4 h-4" : "w-6 h-6"
           )}>
             <div className="text-white">{icon}</div>
           </div>
-          <span className={cn("font-medium text-white", compact ? "text-xs" : "text-sm")}>{title}</span>
+          <span className={cn("font-medium text-white", compact ? "text-[11px]" : "text-sm")}>{title}</span>
         </div>
       </motion.button>
     );

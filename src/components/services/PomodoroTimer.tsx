@@ -90,7 +90,7 @@ export function PomodoroTimer() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Phase selector */}
       <div className="flex justify-center gap-2">
         {(['work', 'short_break', 'long_break'] as PomodoroPhase[]).map((phase) => {
@@ -116,10 +116,10 @@ export function PomodoroTimer() {
         })}
       </div>
 
-      {/* Timer display */}
-      <div className="relative flex justify-center">
-        <div className="relative w-64 h-64">
-          {/* Progress ring */}
+      {/* Timer display - compact with controls on the right */}
+      <div className="flex items-center justify-center gap-6">
+        {/* Compact timer ring (1/4 size) */}
+        <div className="relative w-32 h-32">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
             <circle
               cx="50"
@@ -147,55 +147,52 @@ export function PomodoroTimer() {
           
           {/* Timer content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <PhaseIcon className="w-8 h-8 mb-2" style={{ color: phaseInfo.color }} />
-            <span className="text-5xl font-bold tracking-tight text-foreground">
+            <PhaseIcon className="w-5 h-5 mb-1" style={{ color: phaseInfo.color }} />
+            <span className="text-2xl font-bold tracking-tight text-foreground">
               {formatTime(timeLeft)}
-            </span>
-            <span className="text-sm text-muted-foreground mt-1">
-              {phaseInfo.label}
             </span>
           </div>
         </div>
-      </div>
 
-      {/* Controls */}
-      <div className="flex justify-center gap-3">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={reset}
-          className="w-12 h-12 rounded-full"
-        >
-          <RotateCcw className="w-5 h-5" />
-        </Button>
-        
-        <Button
-          size="icon"
-          onClick={() => isRunning ? pause() : start()}
-          className="w-16 h-16 rounded-full"
-          style={{ backgroundColor: phaseInfo.color }}
-        >
-          {isRunning ? (
-            <Pause className="w-7 h-7" />
-          ) : (
-            <Play className="w-7 h-7 ml-1" />
-          )}
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={skip}
-          className="w-12 h-12 rounded-full"
-        >
-          <SkipForward className="w-5 h-5" />
-        </Button>
+        {/* Controls on the right */}
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={reset}
+            className="w-10 h-10 rounded-full"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+          
+          <Button
+            size="icon"
+            onClick={() => isRunning ? pause() : start()}
+            className="w-14 h-14 rounded-full"
+            style={{ backgroundColor: phaseInfo.color }}
+          >
+            {isRunning ? (
+              <Pause className="w-6 h-6" />
+            ) : (
+              <Play className="w-6 h-6 ml-1" />
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={skip}
+            className="w-10 h-10 rounded-full"
+          >
+            <SkipForward className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Session counter & settings */}
       <div className="flex items-center justify-between px-4">
         <div className="text-center">
-          <div className="text-2xl font-bold text-foreground">{completedSessions}</div>
+          <div className="text-xl font-bold text-foreground">{completedSessions}</div>
           <div className="text-xs text-muted-foreground">
             {t('sessionsToday') || 'Сессий сегодня'}
           </div>
@@ -206,11 +203,11 @@ export function PomodoroTimer() {
           size="icon"
           onClick={() => setSettingsOpen(true)}
         >
-          <Settings2 className="w-5 h-5" />
+          <Settings2 className="w-4 h-4" />
         </Button>
         
         <div className="text-center">
-          <div className="text-2xl font-bold text-foreground">{todaySessions.length}</div>
+          <div className="text-xl font-bold text-foreground">{todaySessions.length}</div>
           <div className="text-xs text-muted-foreground">
             {t('pomodorosCompleted') || 'Помодоро выполнено'}
           </div>
