@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { BottomNavigation } from "@/components/BottomNavigation";
-import { YandexMetrika } from "@/components/YandexMetrika";
 import Dashboard from "./pages/Dashboard";
 import Habits from "./pages/Habits";
 import Tasks from "./pages/Tasks";
@@ -16,8 +15,6 @@ import Services from "./pages/Services";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-
-const METRIKA_ID = import.meta.env.VITE_YANDEX_METRIKA_ID;
 
 const queryClient = new QueryClient();
 
@@ -67,30 +64,9 @@ const AppContent = () => {
         onAddTask={() => setTaskDialogOpen(true)}
         onAddTransaction={() => setTransactionDialogOpen(true)}
       />
-      <YandexMetrika />
     </>
   );
 };
-
-// Initialize Yandex.Metrika when ID is available
-const initMetrika = () => {
-  if (METRIKA_ID && typeof window.ym === 'function') {
-    window.ym(Number(METRIKA_ID), 'init', {
-      clickmap: true,
-      trackLinks: true,
-      accurateTrackBounce: true,
-      webvisor: true
-    });
-  }
-};
-
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'complete') {
-    initMetrika();
-  } else {
-    window.addEventListener('load', initMetrika);
-  }
-}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
