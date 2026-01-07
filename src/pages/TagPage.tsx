@@ -21,6 +21,8 @@ import { TaskCard } from '@/components/TaskCard';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { TagGoalDialog } from '@/components/TagGoalDialog';
+import { TagGoalHistory } from '@/components/TagGoalHistory';
+import { useTagGoalNotifications } from '@/hooks/useTagGoalNotifications';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, CartesianGrid, Legend
@@ -36,9 +38,12 @@ export default function TagPage() {
   const { tasks, toggleTaskCompletion } = useTasks();
   const { transactions, toggleTransactionCompletion } = useFinance();
   const timeTracker = useTimeTracker();
-  const [activeTab, setActiveTab] = useState<'overview' | 'habits' | 'tasks' | 'finance' | 'calendar'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'habits' | 'tasks' | 'finance' | 'calendar' | 'history'>('overview');
   const [period, setPeriod] = useState<'7' | '14' | '30'>('30');
   const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+
+  // Initialize goal notifications
+  useTagGoalNotifications();
 
   const tag = tags.find(t => t.id === tagId);
   const today = getTodayString();
@@ -335,25 +340,24 @@ export default function TagPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full">
-            <TabsTrigger value="overview" className="text-xs">
-              <BarChart3 className="w-4 h-4 mr-1" />
-              {t('progress')}
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="overview" className="text-xs px-1">
+              <BarChart3 className="w-4 h-4" />
             </TabsTrigger>
-            <TabsTrigger value="habits" className="text-xs">
-              <Target className="w-4 h-4 mr-1" />
-              {tagHabits.length}
+            <TabsTrigger value="habits" className="text-xs px-1">
+              <Target className="w-4 h-4" />
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-xs">
-              <CheckSquare className="w-4 h-4 mr-1" />
-              {tagTasks.length}
+            <TabsTrigger value="tasks" className="text-xs px-1">
+              <CheckSquare className="w-4 h-4" />
             </TabsTrigger>
-            <TabsTrigger value="finance" className="text-xs">
-              <Wallet className="w-4 h-4 mr-1" />
-              {tagTransactions.length}
+            <TabsTrigger value="finance" className="text-xs px-1">
+              <Wallet className="w-4 h-4" />
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="text-xs">
-              <Calendar className="w-4 h-4 mr-1" />
+            <TabsTrigger value="calendar" className="text-xs px-1">
+              <Calendar className="w-4 h-4" />
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-xs px-1">
+              <TrendingUp className="w-4 h-4" />
             </TabsTrigger>
           </TabsList>
 
@@ -592,6 +596,11 @@ export default function TagPage() {
                 })}
               </div>
             </Card>
+          </TabsContent>
+
+          {/* History Tab */}
+          <TabsContent value="history">
+            {tagId && <TagGoalHistory tagId={tagId} tagColor={tag.color} />}
           </TabsContent>
         </Tabs>
       </div>
