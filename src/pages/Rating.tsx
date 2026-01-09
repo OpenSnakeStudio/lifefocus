@@ -3,7 +3,10 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { useLeaderboard, PublicProfile } from '@/hooks/useLeaderboard';
 import { useAchievementsFeed } from '@/hooks/useAchievementsFeed';
 import { useStars } from '@/hooks/useStars';
+import { useAuth } from '@/hooks/useAuth';
 import { AppHeader } from '@/components/AppHeader';
+import { AchievementPublishDialog } from '@/components/AchievementPublishDialog';
+import { PublicProfileEditDialog } from '@/components/profile/PublicProfileEditDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Trophy, Star, Flame, ThumbsUp, ThumbsDown, MessageCircle, Send, Crown, Medal, Award, User, ExternalLink } from 'lucide-react';
+import { Trophy, Star, Flame, ThumbsUp, ThumbsDown, MessageCircle, Send, Crown, Medal, Award, User, ExternalLink, Plus, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -21,6 +24,7 @@ import { ru } from 'date-fns/locale';
 export default function Rating() {
   const { language } = useTranslation();
   const isRussian = language === 'ru';
+  const { user, profile } = useAuth();
   const { leaderboard, currentUserRank, loading: leaderboardLoading, getPublicProfile } = useLeaderboard();
   const { 
     posts, 
@@ -42,6 +46,8 @@ export default function Rating() {
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [showProfileEditDialog, setShowProfileEditDialog] = useState(false);
 
   const handleUserClick = async (userId: string) => {
     setProfileLoading(true);
@@ -89,12 +95,24 @@ export default function Rating() {
             </h1>
           </div>
           
-          {userStars && (
-            <Badge variant="secondary" className="text-lg px-3 py-1">
-              <Star className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500" />
-              {userStars.total_stars}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {user && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowProfileEditDialog(true)}
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {userStars && (
+              <Badge variant="secondary" className="text-lg px-3 py-1">
+                <Star className="h-4 w-4 mr-1 text-yellow-500 fill-yellow-500" />
+                {userStars.total_stars}
+              </Badge>
+            )}
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
@@ -240,9 +258,22 @@ export default function Rating() {
                 </Button>
               </div>
               
-              <Badge variant="outline">
-                {dailyPostCount}/{dailyLimit} {isRussian ? 'постов' : 'posts'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {dailyPostCount}/{dailyLimit}
+                </Badge>
+                
+                {user && (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowPublishDialog(true)}
+                    disabled={dailyPostCount >= dailyLimit}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {isRussian ? 'Пост' : 'Post'}
+                  </Button>
+                )}
+              </div>
             </div>
 
             {feedLoading ? (
@@ -471,6 +502,30 @@ export default function Rating() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Publish Achievement Dialog */}
+      <AchievementPublishDialog
+        open={showPublishDialog}
+        onOpenChange={setShowPublishDialog}
+      />
+
+      {/* Profile Edit Dialog */}
+      {user && profile && (
+        <PublicProfileEditDialog
+          open={showProfileEditDialog}
+          onOpenChange={setShowProfileEditDialog}
+          userId={user.id}
+          currentData={{
+            display_name: profile.display_name,
+            avatar_url: profile.avatar_url,
+            bio: (profile as any).bio || null,
+            telegram_username: (profile as any).telegram_username || null
+          }}
+          onUpdate={() => {
+            // Refetch profile data
+          }}
+        />
+      )}
     </div>
   );
 }
