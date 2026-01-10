@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Target, CheckSquare, Wallet, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,7 @@ import { GuestModeBanner } from "@/components/GuestModeBanner";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useTrialNotifications } from "@/hooks/useTrialNotifications";
+import { useStars } from "@/hooks/useStars";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Dashboard() {
@@ -26,9 +27,19 @@ export default function Dashboard() {
   const { transactions, toggleTransactionCompletion, getTodayTransactions } = useFinance();
   const { t, language } = useTranslation();
   const { profile, user } = useAuth();
+  const { recordDailyLogin } = useStars();
+  const dailyLoginRecordedRef = useRef(false);
   
   // Initialize trial notifications
   useTrialNotifications();
+  
+  // Record daily login for stars and streak
+  useEffect(() => {
+    if (user && !dailyLoginRecordedRef.current) {
+      dailyLoginRecordedRef.current = true;
+      recordDailyLogin();
+    }
+  }, [user, recordDailyLogin]);
 
   const today = getTodayString();
   const dayOfWeek = new Date().getDay();

@@ -5,6 +5,7 @@ import {
   PomodoroSession,
   DEFAULT_POMODORO_SETTINGS 
 } from '@/types/service';
+import { supabase } from '@/integrations/supabase/client';
 
 const SETTINGS_KEY = 'habitflow_pomodoro_settings';
 const SESSIONS_KEY = 'habitflow_pomodoro_sessions';
@@ -222,18 +223,87 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const completeSession = useCallback(() => {
+  const completeSession = useCallback(async () => {
     if (sessionStartRef.current && currentPhase === 'work') {
+      const endTime = new Date().toISOString();
+      const startTime = sessionStartRef.current;
+      const durationMinutes = Math.floor(
+        (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000
+      );
+      
       const newSession: PomodoroSession = {
         id: crypto.randomUUID(),
         taskId: currentTaskId,
         subtaskId: currentSubtaskId,
-        startTime: sessionStartRef.current,
-        endTime: new Date().toISOString(),
+        startTime,
+        endTime,
         phase: currentPhase,
         completed: true,
       };
       saveSessions([...sessions, newSession]);
+      
+      // Award stars for completed pomodoro session (minimum 5 minutes)
+      if (durationMinutes >= 5 && currentTaskId) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            // Check daily limit (max 10 verified tasks per day)
+            const today = new Date().toISOString().split('T')[0];
+            const { data: dailyData } = await supabase
+              .from('daily_verified_tasks')
+              .select('verified_count')
+              .eq('user_id', user.id)
+              .eq('activity_date', today)
+              .single();
+            
+            const currentCount = dailyData?.verified_count || 0;
+            if (currentCount < 10) {
+              // Award stars: 1 star per 5 minutes, max 5 per task
+              const starsToAward = Math.min(Math.floor(durationMinutes / 5), 5);
+              
+              if (starsToAward > 0) {
+                // Insert star transaction
+                await supabase.from('star_transactions').insert({
+                  user_id: user.id,
+                  transaction_type: 'task_completion',
+                  amount: starsToAward,
+                  reference_id: currentTaskId,
+                  timer_minutes: durationMinutes,
+                  description: `Pomodoro: ${durationMinutes} min`
+                });
+                
+                // Update user stars
+                const { data: userStars } = await supabase
+                  .from('user_stars')
+                  .select('total_stars')
+                  .eq('user_id', user.id)
+                  .single();
+                
+                if (userStars) {
+                  await supabase
+                    .from('user_stars')
+                    .update({ 
+                      total_stars: userStars.total_stars + starsToAward,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', user.id);
+                }
+                
+                // Update daily verified count
+                await supabase.from('daily_verified_tasks').upsert({
+                  user_id: user.id,
+                  activity_date: today,
+                  verified_count: currentCount + 1
+                }, { onConflict: 'user_id,activity_date' });
+                
+                console.log(`Awarded ${starsToAward} stars for ${durationMinutes} min pomodoro`);
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Failed to award stars:', err);
+        }
+      }
     }
     sessionStartRef.current = null;
   }, [currentPhase, currentTaskId, currentSubtaskId, sessions, saveSessions]);
