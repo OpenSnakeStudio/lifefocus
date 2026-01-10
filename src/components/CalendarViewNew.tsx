@@ -218,20 +218,19 @@ export function CalendarViewNew({
               </div>
 
               {/* Week day headers - compact */}
-              <div className="grid grid-cols-7 gap-1 mb-1">
+              <div className="grid grid-cols-7 gap-[2px] mb-[2px]">
                 {weekDays.map((day, index) => (
                   <div 
                     key={index}
-                    className="w-8 h-5 mx-auto text-center text-[9px] font-medium text-muted-foreground uppercase"
+                    className="w-[6px] h-[6px] mx-auto text-center text-[5px] font-medium text-muted-foreground uppercase leading-none"
                   >
-                    {day.slice(0, 2)}
                   </div>
                 ))}
               </div>
 
-              {/* Calendar grid for this habit - compact circles */}
+              {/* Calendar grid for this habit - 6x6px circles */}
               {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="grid grid-cols-7 gap-1 mb-1">
+                <div key={weekIndex} className="grid grid-cols-7 gap-[2px] mb-[2px]">
                   {week.map((day) => {
                     const isCompleted = getCompletionForDay(habit, day);
                     const isToday = isSameDay(day, new Date());
@@ -243,21 +242,20 @@ export function CalendarViewNew({
                         key={day.toISOString()}
                         onClick={() => !isDisabled && handleToggle(habit.id, day)}
                         disabled={isDisabled}
+                        title={format(day, 'd MMM')}
                         className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center transition-all text-[10px] font-medium mx-auto",
-                          "hover:scale-110 active:scale-95",
+                          "w-[6px] h-[6px] rounded-full transition-all mx-auto",
+                          "hover:scale-150 active:scale-95",
                           isDisabled && "opacity-30 cursor-not-allowed",
                           isCompleted
-                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30"
+                            ? "bg-primary shadow-sm shadow-primary/30"
                             : isToday
-                            ? "bg-primary/20 ring-2 ring-primary ring-offset-1 ring-offset-background"
+                            ? "bg-primary/40 ring-1 ring-primary"
                             : isFuture
-                            ? "bg-muted/30 text-muted-foreground"
+                            ? "bg-muted/30"
                             : "bg-muted/60 hover:bg-muted"
                         )}
-                      >
-                        {isCompleted ? '✓' : format(day, 'd')}
-                      </button>
+                      />
                     );
                   })}
                 </div>

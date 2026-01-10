@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Calculator, Users, DollarSign, Gift, Sparkles, TrendingUp, Star } from 'lucide-react';
+import { Calculator, Users, Sparkles, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +19,15 @@ interface EarningsCalculatorProps {
   isPro: boolean;
 }
 
-// Affiliate 2.0 Commission Structure
+type EarningsPeriod = 'month' | 'quarter' | 'year';
+
+// Affiliate 2.0 Commission Structure (MONTHLY calculations)
 // Level 1 (1-50): 20% + milestone bonuses (500₽ at 10,20,30,40; 1000₽ at 50)
 // Level 2 (51+): 30% + 1000₽ every 25 referrals
 // VIP (200+): One-time 5000₽ bonus
 
-function calculateAffiliateEarnings(paidReferrals: number, avgPayment: number) {
-  // Calculate commissions in rubles
+function calculateMonthlyAffiliateEarnings(paidReferrals: number, avgPayment: number) {
+  // Calculate monthly commissions in rubles
   let commissions = 0;
   
   // Level 1: first 50 referrals at 20%
@@ -38,7 +40,7 @@ function calculateAffiliateEarnings(paidReferrals: number, avgPayment: number) {
     commissions += level2Count * avgPayment * 0.30;
   }
   
-  // Calculate milestone bonuses in rubles (cumulative)
+  // Calculate milestone bonuses in rubles (cumulative, one-time)
   let milestones = 0;
   if (paidReferrals >= 10) milestones += 500;
   if (paidReferrals >= 20) milestones += 500;
@@ -75,41 +77,62 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
   
   const [referralCount, setReferralCount] = useState([25]);
   const [paidPercent, setPaidPercent] = useState([60]);
-  const [avgPayment, setAvgPayment] = useState([2988]);
+  const [selectedPeriod, setSelectedPeriod] = useState<EarningsPeriod>('month');
+
+  // Fixed average payment for annual subscription
+  const avgPayment = 2988;
+
+  // Period multipliers
+  const periodMultipliers: Record<EarningsPeriod, number> = {
+    month: 1,
+    quarter: 3,
+    year: 12,
+  };
+
+  const periodLabels: Record<EarningsPeriod, { ru: string; en: string }> = {
+    month: { ru: 'Месяц', en: 'Month' },
+    quarter: { ru: 'Квартал', en: 'Quarter' },
+    year: { ru: 'Год', en: 'Year' },
+  };
 
   const calculations = useMemo(() => {
     const total = referralCount[0];
     const paid = Math.floor(total * (paidPercent[0] / 100));
+    const multiplier = periodMultipliers[selectedPeriod];
     
-    const earnings = calculateAffiliateEarnings(paid, avgPayment[0]);
-    
-    // Conversion bonus (1:1.5)
-    const withConversion = Math.round(earnings.total * 1.5);
+    const monthlyEarnings = calculateMonthlyAffiliateEarnings(paid, avgPayment);
     
     return {
-      ...earnings,
       paid,
       total,
-      withConversion
+      commissions: monthlyEarnings.commissions * multiplier,
+      milestones: monthlyEarnings.milestones * multiplier,
+      totalEarnings: monthlyEarnings.total * multiplier,
+      level: monthlyEarnings.level,
+      commissionPercent: monthlyEarnings.commissionPercent,
+      isVIP: monthlyEarnings.isVIP,
+      multiplier,
     };
-  }, [referralCount, paidPercent, avgPayment]);
+  }, [referralCount, paidPercent, selectedPeriod]);
 
-  // Generate chart data
+  // Generate chart data (monthly base)
   const chartData = useMemo(() => {
     const data = [];
+    const multiplier = periodMultipliers[selectedPeriod];
+    
     for (let i = 0; i <= 200; i += 10) {
       const paid = Math.floor(i * (paidPercent[0] / 100));
-      const earnings = calculateAffiliateEarnings(paid, avgPayment[0]);
+      const earnings = calculateMonthlyAffiliateEarnings(paid, avgPayment);
       
       data.push({
         referrals: i,
-        commissions: earnings.commissions,
-        milestones: earnings.milestones,
-        total: earnings.total,
+        commissions: earnings.commissions * multiplier,
+        milestones: earnings.milestones * multiplier,
+        total: earnings.total * multiplier,
       });
     }
     return data;
-  }, [paidPercent, avgPayment]);
+  }, [paidPercent, selectedPeriod]);
 
   return (
     <Card>
@@ -144,8 +167,7 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
 
           <div>
             <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-green-500" />
+              <label className="text-sm font-medium text-foreground">
                 {isRussian ? 'Оплатят PRO (%)' : 'Will pay for PRO (%)'}
               </label>
               <Badge variant="outline" className="text-lg font-bold">
@@ -164,7 +186,7 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
         </div>
 
         {/* Level indicator */}
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           <Badge 
             variant={calculations.level === 1 ? "default" : "outline"} 
             className={calculations.level === 1 ? "bg-purple-500" : ""}
@@ -187,16 +209,34 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
 
         {/* Results */}
         <motion.div
-          key={`${referralCount[0]}-${paidPercent[0]}`}
+          key={`${referralCount[0]}-${paidPercent[0]}-${selectedPeriod}`}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-orange-500/10 border border-purple-500/20"
         >
-          <div className="text-center mb-4">
+          {/* Title with period */}
+          <div className="text-center mb-3">
             <Sparkles className="w-6 h-6 text-purple-500 mx-auto mb-2" />
             <div className="text-sm text-muted-foreground">
-              {isRussian ? 'Ваш потенциальный доход' : 'Your potential earnings'}
+              {isRussian ? 'Ваш потенциальный доход за:' : 'Your potential earnings for:'}
             </div>
+          </div>
+
+          {/* Period Toggle */}
+          <div className="flex justify-center gap-2 mb-4">
+            {(['month', 'quarter', 'year'] as EarningsPeriod[]).map((period) => (
+              <button
+                key={period}
+                onClick={() => setSelectedPeriod(period)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  selectedPeriod === period
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-muted/50 hover:bg-muted text-muted-foreground'
+                }`}
+              >
+                {isRussian ? periodLabels[period].ru : periodLabels[period].en}
+              </button>
+            ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -208,7 +248,7 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
                 {isRussian ? 'Комиссии' : 'Commissions'}
               </div>
               <div className="text-xs text-purple-500 mt-1">
-                {calculations.commissionPercent}% × {calculations.paid}
+                {calculations.commissionPercent}% × {calculations.paid} × {calculations.multiplier}
               </div>
             </div>
 
@@ -219,31 +259,21 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
               <div className="text-xs text-muted-foreground">
                 {isRussian ? 'Бонусы за вехи' : 'Milestone bonuses'}
               </div>
+              <div className="text-xs text-amber-500 mt-1">
+                × {calculations.multiplier} {isRussian ? 'мес.' : 'mo.'}
+              </div>
             </div>
           </div>
 
           <div className="mt-3 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-center">
             <div className="text-2xl font-bold text-green-500">
-              {calculations.total.toLocaleString()}₽
+              {calculations.totalEarnings.toLocaleString()}₽
             </div>
             <div className="text-xs text-muted-foreground">
-              {isRussian ? 'Итого' : 'Total'}
-            </div>
-          </div>
-
-          <div className="mt-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/30 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {isRussian ? 'С коэффициентом 1:1.5' : 'With 1:1.5 conversion'}
-              </span>
-              <Badge className="bg-purple-500">
-                {calculations.withConversion.toLocaleString()}₽
-              </Badge>
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
               {isRussian 
-                ? 'При оплате подписки или подарочного кода'
-                : 'When paying for subscription or gift code'}
+                ? `Итого за ${periodLabels[selectedPeriod].ru.toLowerCase()}`
+                : `Total for ${periodLabels[selectedPeriod].en.toLowerCase()}`
+              }
             </div>
           </div>
         </motion.div>
