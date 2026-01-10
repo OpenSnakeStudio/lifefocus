@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Habit, HabitCategory, HabitTag, DEFAULT_HABIT_CATEGORIES, DEFAULT_HABIT_TAGS } from '@/types/habit';
+import { triggerCompletionCelebration } from '@/utils/celebrations';
 
 const STORAGE_KEY = 'habitflow_habits';
 const CATEGORIES_KEY = 'habitflow_habit_categories';
@@ -105,6 +106,8 @@ export function useHabits() {
       newCompletedDates = habit.completedDates.filter(d => d !== date);
     } else {
       newCompletedDates = [...habit.completedDates, date];
+      // Trigger celebration when completing
+      triggerCompletionCelebration();
     }
 
     const streak = calculateStreak(newCompletedDates, habit.targetDays);

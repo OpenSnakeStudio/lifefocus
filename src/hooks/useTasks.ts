@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Task, TaskCategory, TaskTag, TaskStatus, TaskRecurrence, SubTask, TaskAttachment, DEFAULT_CATEGORIES, DEFAULT_TAGS } from '@/types/task';
 import { addDays, addWeeks, addMonths } from 'date-fns';
+import { triggerCompletionCelebration } from '@/utils/celebrations';
 
 const STORAGE_KEY = 'habitflow_tasks';
 const CATEGORIES_KEY = 'habitflow_task_categories';
@@ -120,6 +121,11 @@ export function useTasks() {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
     const newCompleted = !task.completed;
+    
+    // Trigger celebration when completing
+    if (newCompleted) {
+      triggerCompletionCelebration();
+    }
     
     if (newCompleted && task.recurrence !== 'none') {
       // For recurring tasks, create a new instance with next due date

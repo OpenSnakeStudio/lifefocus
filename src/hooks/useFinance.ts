@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FinanceTransaction, FinanceCategory, FinanceTag, DEFAULT_FINANCE_CATEGORIES, DEFAULT_FINANCE_TAGS } from '@/types/finance';
+import { triggerCompletionCelebration } from '@/utils/celebrations';
 
 const STORAGE_KEY = 'habitflow_finance';
 const CATEGORIES_KEY = 'habitflow_finance_categories';
@@ -96,9 +97,16 @@ export function useFinance() {
     const transaction = transactions.find(t => t.id === id);
     if (!transaction) return;
 
+    const newCompleted = !transaction.completed;
+    
+    // Trigger celebration when completing
+    if (newCompleted) {
+      triggerCompletionCelebration();
+    }
+
     updateTransaction(id, { 
-      completed: !transaction.completed,
-      completedAt: !transaction.completed ? new Date().toISOString() : undefined
+      completed: newCompleted,
+      completedAt: newCompleted ? new Date().toISOString() : undefined
     });
   }, [transactions, updateTransaction]);
 

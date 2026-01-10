@@ -20,6 +20,8 @@ export interface AchievementPost {
   user_profile?: {
     display_name: string | null;
     avatar_url: string | null;
+    active_frame: string | null;
+    active_badges: string[] | null;
   };
   user_reaction?: 'like' | 'dislike' | null;
 }
@@ -34,6 +36,8 @@ export interface PostComment {
   user_profile?: {
     display_name: string | null;
     avatar_url: string | null;
+    active_frame: string | null;
+    active_badges: string[] | null;
   };
 }
 
@@ -69,7 +73,7 @@ export function useAchievementsFeed() {
       const userIds = [...new Set((data || []).map(p => p.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url')
+        .select('user_id, display_name, avatar_url, active_frame, active_badges')
         .in('user_id', userIds);
 
       const profilesMap = (profiles || []).reduce((acc, p) => {
@@ -286,7 +290,7 @@ export function useAchievementsFeed() {
       const userIds = [...new Set((data || []).map(c => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, display_name, avatar_url')
+        .select('user_id, display_name, avatar_url, active_frame, active_badges')
         .in('user_id', userIds);
 
       const profilesMap = (profiles || []).reduce((acc, p) => {

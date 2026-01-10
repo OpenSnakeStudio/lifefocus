@@ -332,16 +332,22 @@ export default function Rating() {
                             className="flex items-center gap-3 cursor-pointer"
                             onClick={() => handleUserClick(post.user_id)}
                           >
-                            <Avatar>
-                              <AvatarImage src={post.user_profile?.avatar_url || undefined} />
-                              <AvatarFallback>
-                                <User className="h-4 w-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">
-                                {post.user_profile?.display_name || 'Пользователь'}
-                              </p>
+                            <UserAvatarWithFrame
+                              avatarUrl={post.user_profile?.avatar_url}
+                              displayName={post.user_profile?.display_name}
+                              frameId={post.user_profile?.active_frame}
+                              size="sm"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium truncate">
+                                  {post.user_profile?.display_name || 'Пользователь'}
+                                </p>
+                                <UserBadges 
+                                  badgeIds={post.user_profile?.active_badges || []}
+                                  maxDisplay={2}
+                                />
+                              </div>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(post.created_at), 'dd MMM, HH:mm', { locale: ru })}
                               </p>

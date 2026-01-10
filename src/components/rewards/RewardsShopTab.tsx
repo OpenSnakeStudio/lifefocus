@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ThemePreviewDialog } from './ThemePreviewDialog';
+import { FrameBadgePreview } from '@/components/profile/FrameBadgePreview';
 import { 
   Star, 
   Snowflake, 
@@ -20,13 +21,25 @@ import {
   Frame, 
   Zap, 
   Award,
-  Eye
+  Eye,
+  Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { triggerPurchaseCelebration } from '@/utils/celebrations';
 import { toast } from 'sonner';
+
+// Category filter config
+const CATEGORY_FILTERS = [
+  { id: 'all', icon: Sparkles, color: 'bg-gradient-to-r from-violet-500 to-purple-500' },
+  { id: 'icon', icon: Zap, color: 'bg-gradient-to-r from-yellow-400 to-orange-500' },
+  { id: 'avatar', icon: User, color: 'bg-gradient-to-r from-pink-400 to-rose-500' },
+  { id: 'pro_discount', icon: Percent, color: 'bg-gradient-to-r from-green-400 to-emerald-500' },
+  { id: 'theme', icon: Palette, color: 'bg-gradient-to-r from-blue-400 to-cyan-500' },
+  { id: 'badge', icon: Award, color: 'bg-gradient-to-r from-red-400 to-orange-500' },
+  { id: 'frame', icon: Frame, color: 'bg-gradient-to-r from-amber-400 to-yellow-500' },
+] as const;
 
 interface RewardsShopTabProps {
   rewards: ShopReward[];
@@ -53,6 +66,21 @@ export function RewardsShopTab({
   
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [themePreviewOpen, setThemePreviewOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [previewItem, setPreviewItem] = useState<{ type: 'frame' | 'badge'; id: string } | null>(null);
+
+  const getCategoryLabel = (id: string) => {
+    const labels: Record<string, { ru: string; en: string }> = {
+      all: { ru: 'Все', en: 'All' },
+      icon: { ru: 'Иконки', en: 'Icons' },
+      avatar: { ru: 'Аватары', en: 'Avatars' },
+      pro_discount: { ru: 'Скидки', en: 'Discounts' },
+      theme: { ru: 'Темы', en: 'Themes' },
+      badge: { ru: 'Бейджи', en: 'Badges' },
+      frame: { ru: 'Рамки', en: 'Frames' },
+    };
+    return labels[id] ? (isRussian ? labels[id].ru : labels[id].en) : id;
+  };
 
   const getRewardIcon = (type: string) => {
     switch (type) {
@@ -109,16 +137,22 @@ export function RewardsShopTab({
     }
   };
 
+  const handleItemPreview = (reward: ShopReward) => {
+    const rewardValue = reward.reward_value as { frame_id?: string; badge_id?: string } | null;
+    if (reward.reward_type === 'frame' && rewardValue?.frame_id) {
+      setPreviewItem({ type: 'frame', id: rewardValue.frame_id });
+    } else if (reward.reward_type === 'badge' && rewardValue?.badge_id) {
+      setPreviewItem({ type: 'badge', id: rewardValue.badge_id });
+    }
+  };
+
   const unusedRewards = getUnusedRewards();
   const selectedTheme = CUSTOM_THEMES.find(t => t.id === selectedThemeId) || null;
 
-  // Group rewards by type
-  const groupedRewards = rewards.reduce((acc, reward) => {
-    const type = reward.reward_type;
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(reward);
-    return acc;
-  }, {} as Record<string, ShopReward[]>);
+  // Filter rewards by selected category
+  const filteredRewards = activeCategory === 'all' 
+    ? rewards 
+    : rewards.filter(r => r.reward_type === activeCategory);
 
   return (
     <div className="space-y-4 overflow-x-hidden">
@@ -157,7 +191,29 @@ export function RewardsShopTab({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="shop" className="mt-4">
+        <TabsContent value="shop" className="mt-4 space-y-4">
+          {/* Category Filter Pills */}
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {CATEGORY_FILTERS.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                    isActive 
+                      ? `${cat.color} text-white shadow-lg scale-105` 
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {getCategoryLabel(cat.id)}
+                </button>
+              );
+            })}
+          </div>
+
           {loading ? (
             <div className="grid gap-4">
               {[...Array(3)].map((_, i) => (
@@ -165,104 +221,93 @@ export function RewardsShopTab({
               ))}
             </div>
           ) : (
-            <div className="space-y-6">
-              {Object.entries(groupedRewards).map(([type, typeRewards]) => (
-                <div key={type} className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    {getRewardIcon(type)}
-                    <span>{getRewardTypeLabel(type)}</span>
-                    <Badge variant="outline" className="text-xs">{typeRewards.length}</Badge>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {typeRewards.map((reward, index) => {
-                      const canAfford = userStars >= reward.price_stars;
-                      const isTheme = reward.reward_type === 'theme';
-                      
-                      return (
-                        <motion.div
-                          key={reward.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Card className={!canAfford ? 'opacity-60' : ''}>
-                            <CardContent className="p-3 sm:p-4">
-                              <div className="flex items-start gap-3 sm:gap-4">
-                                <div className="p-2 sm:p-3 bg-muted rounded-lg flex-shrink-0">
-                                  {getRewardIcon(reward.reward_type)}
-                                </div>
-                                
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    {isTheme ? (
-                                      <button
-                                        className="font-semibold hover:text-primary transition-colors text-left"
-                                        onClick={() => handleThemePreview(reward)}
-                                      >
-                                        {reward.name}
-                                      </button>
-                                    ) : (
-                                      <h3 className="font-semibold truncate">{reward.name}</h3>
-                                    )}
-                                    {isTheme && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6"
-                                        onClick={() => handleThemePreview(reward)}
-                                      >
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
-                                    {reward.description}
-                                  </p>
-                                  
-                                  <div className="flex gap-1 mt-2 flex-wrap">
-                                    <Badge variant="outline" className="text-xs">
-                                      {getRewardTypeLabel(reward.reward_type)}
-                                    </Badge>
-                                    {reward.reward_type === 'pro_discount' && (
-                                      <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600">
-                                        {isRussian ? 'Только месячный' : 'Monthly only'}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                <div className="text-right flex-shrink-0">
-                                  <div className="flex items-center gap-1 text-base sm:text-lg font-bold mb-2 justify-end">
-                                    <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 fill-yellow-500" />
-                                    {reward.price_stars}
-                                  </div>
-                                  
-                                  <Button
-                                    size="sm"
-                                    disabled={!canAfford}
-                                    onClick={() => handlePurchase(reward.id)}
-                                    className="text-xs sm:text-sm"
-                                  >
-                                    {isRussian ? 'Купить' : 'Buy'}
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+            <div className="grid gap-3">
+              {filteredRewards.map((reward, index) => {
+                const canAfford = userStars >= reward.price_stars;
+                const isTheme = reward.reward_type === 'theme';
+                const isFrameOrBadge = reward.reward_type === 'frame' || reward.reward_type === 'badge';
+                
+                return (
+                  <motion.div
+                    key={reward.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                  >
+                    <Card className={!canAfford ? 'opacity-60' : ''}>
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start gap-3 sm:gap-4">
+                          <div className="p-2 sm:p-3 bg-muted rounded-lg flex-shrink-0">
+                            {getRewardIcon(reward.reward_type)}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {isTheme || isFrameOrBadge ? (
+                                <button
+                                  className="font-semibold hover:text-primary transition-colors text-left"
+                                  onClick={() => isTheme ? handleThemePreview(reward) : handleItemPreview(reward)}
+                                >
+                                  {reward.name}
+                                </button>
+                              ) : (
+                                <h3 className="font-semibold truncate">{reward.name}</h3>
+                              )}
+                              {(isTheme || isFrameOrBadge) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => isTheme ? handleThemePreview(reward) : handleItemPreview(reward)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                              {reward.description}
+                            </p>
+                            
+                            <div className="flex gap-1 mt-2 flex-wrap">
+                              <Badge variant="outline" className="text-xs">
+                                {getRewardTypeLabel(reward.reward_type)}
+                              </Badge>
+                              {reward.reward_type === 'pro_discount' && (
+                                <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600">
+                                  {isRussian ? 'Только месячный' : 'Monthly only'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="text-right flex-shrink-0">
+                            <div className="flex items-center gap-1 text-base sm:text-lg font-bold mb-2 justify-end">
+                              <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 fill-yellow-500" />
+                              {reward.price_stars}
+                            </div>
+                            
+                            <Button
+                              size="sm"
+                              disabled={!canAfford}
+                              onClick={() => handlePurchase(reward.id)}
+                              className="text-xs sm:text-sm"
+                            >
+                              {isRussian ? 'Купить' : 'Buy'}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
 
-              {rewards.length === 0 && (
+              {filteredRewards.length === 0 && (
                 <Card>
                   <CardContent className="text-center py-12">
                     <ShoppingBag className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">
-                      {isRussian ? 'Магазин пока пуст' : 'Shop is empty'}
+                      {isRussian ? 'Нет товаров в этой категории' : 'No items in this category'}
                     </p>
                   </CardContent>
                 </Card>
@@ -369,6 +414,14 @@ export function RewardsShopTab({
             setThemePreviewOpen(false);
           }
         }}
+      />
+
+      {/* Frame/Badge Preview Dialog */}
+      <FrameBadgePreview
+        open={!!previewItem}
+        onOpenChange={(open) => !open && setPreviewItem(null)}
+        previewFrameId={previewItem?.type === 'frame' ? previewItem.id : undefined}
+        previewBadgeIds={previewItem?.type === 'badge' ? [previewItem.id] : []}
       />
     </div>
   );
