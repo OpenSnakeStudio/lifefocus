@@ -217,45 +217,49 @@ export function CalendarViewNew({
                 </span>
               </div>
 
-              {/* Week day headers - compact */}
-              <div className="grid grid-cols-7 gap-[2px] mb-[2px]">
+              {/* Week day headers with day names */}
+              <div className="grid grid-cols-7 gap-[2px] mb-1">
                 {weekDays.map((day, index) => (
                   <div 
                     key={index}
-                    className="w-[6px] h-[6px] mx-auto text-center text-[5px] font-medium text-muted-foreground uppercase leading-none"
+                    className="text-center text-[8px] font-medium text-muted-foreground uppercase"
                   >
+                    {day.slice(0, 2)}
                   </div>
                 ))}
               </div>
 
-              {/* Calendar grid for this habit - 6x6px circles */}
+              {/* Calendar grid for this habit - 20x20px circles */}
               {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="grid grid-cols-7 gap-[3px] mb-[3px]">
+                <div key={weekIndex} className="grid grid-cols-7 gap-[2px] mb-[2px]">
                   {week.map((day) => {
                     const isCompleted = getCompletionForDay(habit, day);
                     const isToday = isSameDay(day, new Date());
                     const isDisabled = isBeforeRegistration(day);
                     const isFuture = isBefore(new Date(), day) && !isSameDay(new Date(), day);
+                    const dayNum = format(day, 'd');
                     
-                      return (
+                    return (
                       <button
                         key={day.toISOString()}
                         onClick={() => !isDisabled && handleToggle(habit.id, day)}
                         disabled={isDisabled}
                         title={format(day, 'd MMM')}
                         className={cn(
-                          "w-[25px] h-[25px] rounded-full transition-all mx-auto border-2",
+                          "w-[20px] h-[20px] rounded-full transition-all mx-auto border flex items-center justify-center text-[7px] font-medium",
                           "hover:scale-110 active:scale-95",
                           isDisabled && "opacity-30 cursor-not-allowed",
                           isCompleted
-                            ? "bg-primary border-primary shadow-md shadow-primary/30"
+                            ? "bg-primary border-primary text-primary-foreground shadow-sm"
                             : isToday
-                            ? "bg-primary/20 border-primary"
+                            ? "bg-primary/20 border-primary text-primary"
                             : isFuture
-                            ? "bg-transparent border-muted/40"
-                            : "bg-muted/30 border-muted/60 hover:border-muted"
+                            ? "bg-transparent border-muted/40 text-muted-foreground/50"
+                            : "bg-muted/30 border-muted/60 text-muted-foreground hover:border-muted"
                         )}
-                      />
+                      >
+                        {dayNum}
+                      </button>
                     );
                   })}
                 </div>

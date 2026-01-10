@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, Edit2, Tags, ArrowLeft, Cloud, Settings, Sliders, Volume2, Sparkles } from 'lucide-react';
+import { LogOut, Edit2, Tags, ArrowLeft, Cloud, Settings, Sliders, Volume2, Sparkles, Shield } from 'lucide-react';
 import { SyncHistoryPanel } from '@/components/SyncHistory';
 import { TrialStatusCard } from '@/components/profile/TrialStatusCard';
 import { ProfileEditDialog } from '@/components/profile/ProfileEditDialog';
@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseSync } from '@/hooks/useSupabaseSync';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useCelebrationSettings } from '@/hooks/useCelebrationSettings';
+import { useLegalDocuments } from '@/hooks/useLegalDocuments';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +29,7 @@ export default function ProfileSettings() {
   const { isSyncing, syncAll, syncHistory } = useSupabaseSync();
   const { subscription, currentPlan, isInTrial, trialDaysLeft, trialBonusMonths } = useSubscription();
   const { soundEnabled, confettiEnabled, setSoundEnabled, setConfettiEnabled } = useCelebrationSettings();
+  const { isAdmin } = useLegalDocuments();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const isRussian = language === 'ru';
 
@@ -74,14 +76,14 @@ export default function ProfileSettings() {
           </div>
         </div>
 
-        {/* Profile Card */}
+        {/* Profile Card with Logout under email */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           <Card className="mb-6">
             <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
+              <div className="flex items-start gap-4">
                 <div className="relative">
                   <Avatar className="w-16 h-16">
                     <AvatarImage src={profile?.avatar_url || undefined} />
@@ -100,16 +102,46 @@ export default function ProfileSettings() {
                   <h2 className="text-lg font-semibold text-foreground">
                     {profile?.display_name || user.email?.split('@')[0]}
                   </h2>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{user.email}</p>
+                  <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
+                    <LogOut className="w-4 h-4" />
+                    {t('signOut')}
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="gap-2">
-                  <LogOut className="w-4 h-4" />
-                  {t('signOut')}
-                </Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Admin Panel Link (only for admins) */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-6"
+          >
+            <Link to="/admin">
+              <Card className="border-red-500/30 bg-gradient-to-r from-red-500/10 to-transparent hover:border-red-500/50 transition-colors cursor-pointer">
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-red-500" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-foreground">
+                        {isRussian ? 'Панель администратора' : 'Admin Panel'}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {isRussian ? 'Управление пользователями и контентом' : 'Manage users and content'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Trial Status */}
         {isInTrial && (

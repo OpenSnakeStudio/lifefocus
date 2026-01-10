@@ -9,9 +9,15 @@ export interface UsageLimits {
   transactions: { current: number; max: number; canAdd: boolean };
 }
 
+export interface FreeFeatureRestrictions {
+  subtasksEnabled: boolean;
+  attachmentsEnabled: boolean;
+  recurrenceEnabled: boolean;
+}
+
 const FREE_LIMITS = {
   habits: 3,
-  tasks: 3,
+  tasks: 5,
   transactions: 15,
 };
 
@@ -38,6 +44,13 @@ export function useUsageLimits() {
 
   const limits = useMemo(() => hasProAccess ? PRO_LIMITS : FREE_LIMITS, [hasProAccess]);
 
+  // Feature restrictions for FREE users
+  const freeFeatureRestrictions: FreeFeatureRestrictions = useMemo(() => ({
+    subtasksEnabled: hasProAccess,
+    attachmentsEnabled: hasProAccess,
+    recurrenceEnabled: hasProAccess,
+  }), [hasProAccess]);
+
   const checkLimit = (type: 'habits' | 'tasks' | 'transactions', currentCount: number): UsageLimits[typeof type] => {
     const max = limits[type];
     return {
@@ -55,6 +68,7 @@ export function useUsageLimits() {
     limits,
     hasProAccess,
     isProActive: hasProAccess,
+    freeFeatureRestrictions,
     getHabitsLimit,
     getTasksLimit,
     getTransactionsLimit,

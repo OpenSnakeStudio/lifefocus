@@ -1,6 +1,6 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Settings, Trophy, Users, Crown, Info, Lock, LogIn, ChevronRight } from 'lucide-react';
+import { User, Settings, Trophy, Users, Crown, Lock, LogIn } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -152,31 +152,6 @@ export default function Profile() {
             delay={0.3}
           />
         </div>
-
-        {/* About App Link */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-6"
-        >
-          <Link to="/about">
-            <Button
-              variant="ghost"
-              className="w-full justify-between p-4 h-auto"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                  <Info className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <span className="text-sm font-medium">
-                  {isRussian ? 'О приложении' : 'About App'}
-                </span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </Button>
-          </Link>
-        </motion.div>
       </div>
     </div>
   );

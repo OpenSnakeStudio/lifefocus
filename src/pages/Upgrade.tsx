@@ -47,8 +47,8 @@ const proFeatures = [
 
 const freeFeatures = [
   { ru: 'До 3 привычек', en: 'Up to 3 habits', limit: true },
-  { ru: 'До 10 задач', en: 'Up to 10 tasks', limit: true },
-  { ru: 'До 20 финансовых операций', en: 'Up to 20 transactions', limit: true },
+  { ru: 'До 5 задач (без подзадач, вложений и регулярности)', en: 'Up to 5 tasks (no subtasks, attachments, recurrence)', limit: true },
+  { ru: 'До 15 финансовых операций/мес', en: 'Up to 15 transactions/month', limit: true },
   { ru: 'Локальное хранение данных', en: 'Local data storage' },
   { ru: 'Базовая статистика', en: 'Basic statistics' },
   { ru: '3 мини-приложения', en: '3 mini-apps' },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Calendar, ImageIcon, Award, Check, Loader2, Eye } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -183,7 +184,11 @@ export function ProfilePreferencesSection() {
               </div>
             ) : ownedFrames.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {isRussian ? 'У вас пока нет рамок. Купите их в магазине наград!' : 'You don\'t have any frames yet. Buy them in the rewards shop!'}
+                {isRussian ? (
+                  <>У вас пока нет рамок. Купите их в <Link to="/rewards" className="text-primary hover:underline font-medium">магазине наград</Link>!</>
+                ) : (
+                  <>You don't have any frames yet. Buy them in the <Link to="/rewards" className="text-primary hover:underline font-medium">rewards shop</Link>!</>
+                )}
               </p>
             ) : (
               <div className="space-y-3">
