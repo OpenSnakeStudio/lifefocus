@@ -12,6 +12,7 @@ import { FinanceWidget } from "@/components/dashboard/FinanceWidget";
 import { DayQualityRing } from "@/components/dashboard/DayQualityRing";
 import { TopWidgetsSection } from "@/components/dashboard/TopWidgetsSection";
 import { OverdueWidget } from "@/components/dashboard/OverdueWidget";
+import { useOverdueNotifications } from "@/hooks/useOverdueNotifications";
 
 import { GuestModeBanner } from "@/components/GuestModeBanner";
 import { AppHeader } from "@/components/AppHeader";
@@ -35,6 +36,9 @@ export default function Dashboard() {
   
   // Initialize trial notifications
   useTrialNotifications();
+  
+  // Initialize overdue notifications for tasks, habits, and transactions
+  useOverdueNotifications({ tasks, habits, transactions });
   
   // Record daily login for stars and streak
   useEffect(() => {

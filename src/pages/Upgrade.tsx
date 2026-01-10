@@ -92,15 +92,13 @@ export default function Upgrade() {
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;
     setPromoLoading(true);
-    const validation = await validatePromoCode(promoCode.trim().toUpperCase());
+    const promo = await validatePromoCode(promoCode.trim().toUpperCase());
     setPromoLoading(false);
 
-    if (validation.valid && validation.promo) {
-      setPromoDiscount(validation.promo.discount_percent);
-      setAppliedPromoId(validation.promo.id);
-      toast.success(isRussian ? `Промокод применён: -${validation.promo.discount_percent}%` : `Promo code applied: -${validation.promo.discount_percent}%`);
-    } else {
-      toast.error(validation.error || (isRussian ? 'Неверный промокод' : 'Invalid promo code'));
+    if (promo) {
+      setPromoDiscount(promo.discount_percent);
+      setAppliedPromoId(promo.id);
+      toast.success(isRussian ? `Промокод применён: -${promo.discount_percent}%` : `Promo code applied: -${promo.discount_percent}%`);
     }
   };
 

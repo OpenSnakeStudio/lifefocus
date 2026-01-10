@@ -66,7 +66,7 @@ export default function Tasks({ openDialog, onDialogClose }: TasksProps) {
   useTaskNotifications(tasks);
   
   // Show toast notifications for overdue tasks on app load
-  useOverdueNotifications(tasks);
+  useOverdueNotifications({ tasks });
   
   // Auto-move overdue tasks to today
   useOverdueTasks(tasks, updateTask);
