@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, ArrowLeft, Copy, Check, Gift, Crown,
-  Wallet, TrendingUp, Clock, Info,
+  Wallet, TrendingUp, Clock,
   DollarSign, Zap, BarChart3, Share2, Calculator,
-  Star, Award, Target
+  Star, Award, Target, X
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import confetti from 'canvas-confetti';
@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { EarningsCalculator } from '@/components/referral/EarningsCalculator';
 import { ReferralModal } from '@/components/ReferralModal';
 import { WithdrawalForm } from '@/components/referral/WithdrawalForm';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PartnerProgram() {
   const { language } = useTranslation();
@@ -34,6 +35,9 @@ export default function PartnerProgram() {
 
   const [copied, setCopied] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showActiveList, setShowActiveList] = useState(false);
+  const [showPaidList, setShowPaidList] = useState(false);
+  const [referralsList, setReferralsList] = useState<Array<{ id: string; displayName: string; isActive: boolean; hasPaid: boolean }>>([]);
 
   const referralCode = profile?.referral_code;
   const referralLink = referralCode ? `${window.location.origin}/auth?ref=${referralCode}` : '';
@@ -215,17 +219,12 @@ export default function PartnerProgram() {
 
           {/* Stats Tab */}
           <TabsContent value="stats" className="space-y-4">
-            {/* Current Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <Card>
-                <CardContent className="pt-4 text-center">
-                  <div className="text-2xl font-bold text-foreground">{stats.totalReferrals}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {isRussian ? 'Всего' : 'Total'}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
+            {/* Current Stats - only Active and Paid, clickable */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card 
+                className="cursor-pointer hover:ring-2 hover:ring-green-500/30 transition-all"
+                onClick={() => stats.activeReferrals > 0 && setShowActiveList(true)}
+              >
                 <CardContent className="pt-4 text-center">
                   <div className="text-2xl font-bold text-green-500">{stats.activeReferrals}</div>
                   <div className="text-xs text-muted-foreground">
@@ -233,7 +232,10 @@ export default function PartnerProgram() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card 
+                className="cursor-pointer hover:ring-2 hover:ring-amber-500/30 transition-all"
+                onClick={() => stats.paidReferrals > 0 && setShowPaidList(true)}
+              >
                 <CardContent className="pt-4 text-center">
                   <div className="text-2xl font-bold text-amber-500">{stats.paidReferrals}</div>
                   <div className="text-xs text-muted-foreground">
@@ -428,41 +430,6 @@ export default function PartnerProgram() {
               </CardContent>
             </Card>
 
-            {/* Activation Conditions */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-500" />
-                  {isRussian ? 'Условия активации' : 'Activation Conditions'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Clock className="w-5 h-5 text-blue-500" />
-                    <div>
-                      <div className="font-medium text-sm">
-                        {isRussian ? '7 дней активности' : '7 days of activity'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {isRussian ? 'Реферал должен заходить в приложение' : 'Referral must log into the app'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Zap className="w-5 h-5 text-amber-500" />
-                    <div>
-                      <div className="font-medium text-sm">
-                        {isRussian ? '30 минут в приложении' : '30 minutes in the app'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {isRussian ? 'Суммарное время использования' : 'Total usage time'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Calculator Tab */}
@@ -493,7 +460,135 @@ export default function PartnerProgram() {
 
         {/* Referral Modal */}
         <ReferralModal open={showInviteModal} onOpenChange={setShowInviteModal} />
+
+        {/* Referrals List Modal */}
+        <ReferralsListModal 
+          open={showActiveList} 
+          onClose={() => setShowActiveList(false)}
+          title={isRussian ? 'Активные рефералы' : 'Active Referrals'}
+          userId={user?.id}
+          filterType="active"
+        />
+        <ReferralsListModal 
+          open={showPaidList} 
+          onClose={() => setShowPaidList(false)}
+          title={isRussian ? 'Оплатившие рефералы' : 'Paid Referrals'}
+          userId={user?.id}
+          filterType="paid"
+        />
       </div>
     </div>
+  );
+}
+
+// Referrals List Modal Component
+function ReferralsListModal({ 
+  open, 
+  onClose, 
+  title, 
+  userId,
+  filterType 
+}: { 
+  open: boolean; 
+  onClose: () => void; 
+  title: string;
+  userId?: string;
+  filterType: 'active' | 'paid';
+}) {
+  const navigate = useNavigate();
+  const [referrals, setReferrals] = useState<Array<{ id: string; displayName: string; userId: string }>>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open && userId) {
+      fetchReferrals();
+    }
+  }, [open, userId, filterType]);
+
+  const fetchReferrals = async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const { data: referralsData } = await supabase
+        .from('referrals')
+        .select('referred_id')
+        .eq('referrer_id', userId)
+        .eq(filterType === 'active' ? 'is_active' : 'referred_has_paid', true);
+
+      if (referralsData && referralsData.length > 0) {
+        const referredIds = referralsData.map(r => r.referred_id);
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, display_name')
+          .in('user_id', referredIds);
+
+        setReferrals(
+          (profiles || []).map(p => ({
+            id: p.user_id,
+            displayName: p.display_name || 'User',
+            userId: p.user_id
+          }))
+        );
+      } else {
+        setReferrals([]);
+      }
+    } catch (err) {
+      console.error('Error fetching referrals:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReferralClick = (referralUserId: string) => {
+    onClose();
+    navigate(`/rating?user=${referralUserId}`);
+  };
+
+  if (!open) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="fixed inset-x-4 top-[20%] max-w-md mx-auto bg-card rounded-2xl p-5 shadow-lg z-50 max-h-[60vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        ) : referrals.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">No referrals</div>
+        ) : (
+          <div className="space-y-2">
+            {referrals.map(referral => (
+              <button
+                key={referral.id}
+                onClick={() => handleReferralClick(referral.userId)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition-colors text-left"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-primary" />
+                </div>
+                <span className="font-medium">{referral.displayName}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }

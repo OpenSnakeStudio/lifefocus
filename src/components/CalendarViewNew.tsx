@@ -230,7 +230,7 @@ export function CalendarViewNew({
 
               {/* Calendar grid for this habit - 6x6px circles */}
               {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="grid grid-cols-7 gap-[2px] mb-[2px]">
+                <div key={weekIndex} className="grid grid-cols-7 gap-[3px] mb-[3px]">
                   {week.map((day) => {
                     const isCompleted = getCompletionForDay(habit, day);
                     const isToday = isSameDay(day, new Date());
@@ -244,16 +244,16 @@ export function CalendarViewNew({
                         disabled={isDisabled}
                         title={format(day, 'd MMM')}
                         className={cn(
-                          "w-[6px] h-[6px] rounded-full transition-all mx-auto",
-                          "hover:scale-150 active:scale-95",
+                          "w-[10px] h-[10px] rounded-sm transition-all mx-auto border",
+                          "hover:scale-125 active:scale-95",
                           isDisabled && "opacity-30 cursor-not-allowed",
                           isCompleted
-                            ? "bg-primary shadow-sm shadow-primary/30"
+                            ? "bg-primary border-primary shadow-sm shadow-primary/30"
                             : isToday
-                            ? "bg-primary/40 ring-1 ring-primary"
+                            ? "bg-primary/20 border-primary"
                             : isFuture
-                            ? "bg-muted/30"
-                            : "bg-muted/60 hover:bg-muted"
+                            ? "bg-transparent border-muted/40"
+                            : "bg-muted/30 border-muted/60 hover:border-muted"
                         )}
                       />
                     );

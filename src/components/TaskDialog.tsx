@@ -365,25 +365,29 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
                 {t('category')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCategoryId(categoryId === cat.id ? undefined : cat.id)}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-sm transition-all",
-                      categoryId === cat.id
-                        ? "ring-2 ring-offset-2 ring-offset-card"
-                        : "opacity-60 hover:opacity-100"
-                    )}
-                    style={{ 
-                      backgroundColor: cat.color + '33', 
-                      color: cat.color,
-                      ...(categoryId === cat.id && { ringColor: cat.color })
-                    }}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const isSelected = categoryId === cat.id;
+                  const bgColor = cat.color + '25';
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCategoryId(isSelected ? undefined : cat.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                        isSelected
+                          ? "ring-2 ring-offset-1 ring-offset-card shadow-sm"
+                          : "opacity-80 hover:opacity-100"
+                      )}
+                      style={{ 
+                        backgroundColor: isSelected ? cat.color : bgColor,
+                        color: isSelected ? '#fff' : cat.color,
+                        borderColor: cat.color
+                      }}
+                    >
+                      {cat.name}
+                    </button>
+                  );
+                })}
                 {showNewCategory ? (
                   <div className="flex gap-1">
                     <Input
@@ -414,24 +418,29 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
                 {t('tagsLabel')}
               </label>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    onClick={() => toggleTag(tag.id)}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-sm transition-all",
-                      tagIds.includes(tag.id)
-                        ? "ring-2 ring-offset-2 ring-offset-card"
-                        : "opacity-60 hover:opacity-100"
-                    )}
-                    style={{ 
-                      backgroundColor: tag.color + '33', 
-                      color: tag.color 
-                    }}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
+                {tags.map((tag) => {
+                  const isSelected = tagIds.includes(tag.id);
+                  const bgColor = tag.color + '25';
+                  return (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                        isSelected
+                          ? "ring-2 ring-offset-1 ring-offset-card shadow-sm"
+                          : "opacity-80 hover:opacity-100"
+                      )}
+                      style={{ 
+                        backgroundColor: isSelected ? tag.color : bgColor,
+                        color: isSelected ? '#fff' : tag.color,
+                        borderColor: tag.color
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
                 {showNewTag ? (
                   <div className="flex gap-1">
                     <Input

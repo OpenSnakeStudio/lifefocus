@@ -1,19 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Calculator, Users, Sparkles, Star } from 'lucide-react';
+import { Calculator, Users, Sparkles, Star, Download, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/contexts/LanguageContext';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { toast } from 'sonner';
 
 interface EarningsCalculatorProps {
   isPro: boolean;
@@ -74,6 +67,7 @@ function calculateMonthlyAffiliateEarnings(paidReferrals: number, avgPayment: nu
 export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
   const { language } = useTranslation();
   const isRussian = language === 'ru';
+  const calculatorRef = useRef<HTMLDivElement>(null);
   
   const [referralCount, setReferralCount] = useState([25]);
   const [paidPercent, setPaidPercent] = useState([60]);
@@ -115,27 +109,91 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
     };
   }, [referralCount, paidPercent, selectedPeriod]);
 
-  // Generate chart data (monthly base)
-  const chartData = useMemo(() => {
-    const data = [];
-    const multiplier = periodMultipliers[selectedPeriod];
+  // Export to image
+  const handleExportImage = async () => {
+    if (!calculatorRef.current) return;
     
-    for (let i = 0; i <= 200; i += 10) {
-      const paid = Math.floor(i * (paidPercent[0] / 100));
-      const earnings = calculateMonthlyAffiliateEarnings(paid, avgPayment);
+    try {
+      // Create canvas from the calculator card
+      const canvas = document.createElement('canvas');
+      const rect = calculatorRef.current.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
       
-      data.push({
-        referrals: i,
-        commissions: earnings.commissions * multiplier,
-        milestones: earnings.milestones * multiplier,
-        total: earnings.total * multiplier,
-      });
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      // Create a simple styled export
+      ctx.scale(2, 2);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 18px system-ui';
+      ctx.fillText(isRussian ? 'Калькулятор Affiliate 2.0' : 'Affiliate 2.0 Calculator', 20, 40);
+      
+      // Stats
+      ctx.font = '14px system-ui';
+      ctx.fillStyle = '#a0a0a0';
+      ctx.fillText(`${isRussian ? 'Приглашённых' : 'Invited'}: ${referralCount[0]}`, 20, 80);
+      ctx.fillText(`${isRussian ? 'Оплатят PRO' : 'Will pay PRO'}: ${paidPercent[0]}%`, 20, 105);
+      
+      // Results
+      ctx.font = 'bold 16px system-ui';
+      ctx.fillStyle = '#8b5cf6';
+      ctx.fillText(`${isRussian ? 'Комиссии' : 'Commissions'}: ${calculations.commissions.toLocaleString()}₽`, 20, 150);
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillText(`${isRussian ? 'Бонусы за вехи' : 'Milestone bonuses'}: +${calculations.milestones.toLocaleString()}₽`, 20, 180);
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 24px system-ui';
+      ctx.fillText(`${isRussian ? 'Итого' : 'Total'}: ${calculations.totalEarnings.toLocaleString()}₽`, 20, 230);
+      
+      // Period
+      ctx.font = '12px system-ui';
+      ctx.fillStyle = '#a0a0a0';
+      const periodText = isRussian 
+        ? `за ${periodLabels[selectedPeriod].ru.toLowerCase()}`
+        : `for ${periodLabels[selectedPeriod].en.toLowerCase()}`;
+      ctx.fillText(periodText, 20, 255);
+      
+      // Download
+      const link = document.createElement('a');
+      link.download = `affiliate-calculator-${selectedPeriod}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success(isRussian ? 'Изображение сохранено!' : 'Image saved!');
+    } catch (error) {
+      toast.error(isRussian ? 'Ошибка экспорта' : 'Export failed');
     }
-    return data;
-  }, [paidPercent, selectedPeriod]);
+  };
+
+  // Share
+  const handleShare = async () => {
+    const shareText = isRussian 
+      ? `💰 Affiliate 2.0 - потенциальный доход:\n\n👥 ${referralCount[0]} приглашённых (${paidPercent[0]}% оплатят)\n💜 Комиссии: ${calculations.commissions.toLocaleString()}₽\n🌟 Бонусы: +${calculations.milestones.toLocaleString()}₽\n✅ Итого за ${periodLabels[selectedPeriod].ru.toLowerCase()}: ${calculations.totalEarnings.toLocaleString()}₽\n\nПрисоединяйся: ${window.location.origin}`
+      : `💰 Affiliate 2.0 - potential earnings:\n\n👥 ${referralCount[0]} invited (${paidPercent[0]}% will pay)\n💜 Commissions: ${calculations.commissions.toLocaleString()}₽\n🌟 Bonuses: +${calculations.milestones.toLocaleString()}₽\n✅ Total for ${periodLabels[selectedPeriod].en.toLowerCase()}: ${calculations.totalEarnings.toLocaleString()}₽\n\nJoin: ${window.location.origin}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: isRussian ? 'Калькулятор Affiliate 2.0' : 'Affiliate 2.0 Calculator',
+          text: shareText,
+        });
+      } catch (error) {
+        // User cancelled or error
+        await navigator.clipboard.writeText(shareText);
+        toast.success(isRussian ? 'Скопировано!' : 'Copied!');
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      toast.success(isRussian ? 'Скопировано!' : 'Copied!');
+    }
+  };
 
   return (
-    <Card>
+    <Card ref={calculatorRef}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Calculator className="w-4 h-4 text-purple-500" />
@@ -278,60 +336,26 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
           </div>
         </motion.div>
 
-        {/* Chart */}
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="commissionGradient2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="milestoneGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="referrals" 
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-              />
-              <YAxis 
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                axisLine={{ stroke: 'hsl(var(--border))' }}
-                tickFormatter={(value) => `${(value/1000).toFixed(0)}k`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                }}
-                labelFormatter={(value) => `${value} ${isRussian ? 'рефералов' : 'referrals'}`}
-                formatter={(value: number) => [`${value.toLocaleString()}₽`]}
-              />
-              <Area
-                type="monotone"
-                dataKey="commissions"
-                stroke="#8b5cf6"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#commissionGradient2)"
-                name={isRussian ? 'Комиссии' : 'Commissions'}
-              />
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="#10b981"
-                strokeWidth={2}
-                fillOpacity={0.2}
-                fill="#10b981"
-                name={isRussian ? 'Итого' : 'Total'}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* Export Buttons */}
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportImage}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {isRussian ? 'Скачать' : 'Download'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            className="gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            {isRussian ? 'Поделиться' : 'Share'}
+          </Button>
         </div>
 
         <p className="text-xs text-center text-muted-foreground">

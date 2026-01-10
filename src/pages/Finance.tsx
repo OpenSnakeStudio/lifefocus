@@ -174,24 +174,24 @@ export default function Finance({ openDialog, onDialogClose }: FinanceProps) {
               <button
                 onClick={() => setFilterCategory(null)}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-[60px]",
+                  "flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl transition-all min-w-[55px]",
                   !filterCategory ? "bg-finance/20 ring-2 ring-finance" : "bg-muted hover:bg-muted/80"
                 )}
               >
-                <span className="text-lg">📋</span>
-                <span className="text-[10px] text-muted-foreground">{t('uncategorized')}</span>
+                <span className="text-base">📋</span>
+                <span className="text-[9px] text-muted-foreground leading-tight">{t('uncategorized')}</span>
               </button>
               {FINANCE_CATEGORIES.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => setFilterCategory(filterCategory === cat.id ? null : cat.id)}
                   className={cn(
-                    "flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-[60px]",
+                    "flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl transition-all min-w-[55px]",
                     filterCategory === cat.id ? "bg-finance/20 ring-2 ring-finance" : "bg-muted hover:bg-muted/80"
                   )}
                 >
-                  <span className="text-lg">{cat.icon}</span>
-                  <span className="text-[10px] text-muted-foreground truncate max-w-[50px]">{cat.name}</span>
+                  <span className="text-base">{cat.icon}</span>
+                  <span className="text-[9px] text-muted-foreground truncate max-w-[50px] leading-tight">{cat.name}</span>
                 </button>
               ))}
             </div>

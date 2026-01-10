@@ -114,27 +114,30 @@ export function TaskFilters({
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2">{t('category')}</h4>
                 <div className="flex flex-wrap gap-2">
-                  {categories.map(category => (
-                    <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.id)}
-                      className={cn(
-                        "px-3 py-1 rounded-full text-sm transition-all",
-                        selectedCategories.includes(category.id)
-                          ? "ring-2 ring-offset-2 ring-offset-card"
-                          : "opacity-60 hover:opacity-100"
-                      )}
-                      style={{ 
-                        backgroundColor: category.color + '33', 
-                        color: category.color,
-                        ...(selectedCategories.includes(category.id) && { 
-                          ringColor: category.color 
-                        })
-                      }}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
+                  {categories.map(category => {
+                    const isSelected = selectedCategories.includes(category.id);
+                    // Ensure readable text on colored background
+                    const bgColor = category.color + '25';
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => toggleCategory(category.id)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                          isSelected
+                            ? "ring-2 ring-offset-1 ring-offset-card shadow-sm"
+                            : "opacity-80 hover:opacity-100"
+                        )}
+                        style={{ 
+                          backgroundColor: isSelected ? category.color : bgColor,
+                          color: isSelected ? '#fff' : category.color,
+                          borderColor: category.color
+                        }}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -143,24 +146,29 @@ export function TaskFilters({
                 <div>
                   <h4 className="text-sm font-medium text-foreground mb-2">{t('tagsLabel')}</h4>
                   <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
-                      <button
-                        key={tag.id}
-                        onClick={() => toggleTag(tag.id)}
-                        className={cn(
-                          "px-3 py-1 rounded-full text-sm transition-all",
-                          selectedTags.includes(tag.id)
-                            ? "ring-2 ring-offset-2 ring-offset-card"
-                            : "opacity-60 hover:opacity-100"
-                        )}
-                        style={{ 
-                          backgroundColor: tag.color + '33', 
-                          color: tag.color 
-                        }}
-                      >
-                        {tag.name}
-                      </button>
-                    ))}
+                    {tags.map(tag => {
+                      const isSelected = selectedTags.includes(tag.id);
+                      const bgColor = tag.color + '25';
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleTag(tag.id)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all border",
+                            isSelected
+                              ? "ring-2 ring-offset-1 ring-offset-card shadow-sm"
+                              : "opacity-80 hover:opacity-100"
+                          )}
+                          style={{ 
+                            backgroundColor: isSelected ? tag.color : bgColor,
+                            color: isSelected ? '#fff' : tag.color,
+                            borderColor: tag.color
+                          }}
+                        >
+                          {tag.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -188,9 +188,8 @@ export default function TagPage() {
 
   const COLORS = ['hsl(var(--habit))', 'hsl(var(--task))', 'hsl(var(--finance))'];
 
-  // Show loading while tags are loading OR if we have a tagId but haven't found the tag yet
-  // This prevents flashing "not found" when tags are still being fetched
-  if (tagsLoading || (tagId && tags.length === 0)) {
+  // Show loading while tags are being fetched
+  if (tagsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">{t('loading')}</div>
@@ -198,18 +197,40 @@ export default function TagPage() {
     );
   }
 
-  if (!tag) {
+  // If tag not found after loading, show message
+  if (!tag && !tagsLoading) {
     return (
       <div className="min-h-screen bg-background pb-24">
         <AppHeader />
         <div className="max-w-4xl mx-auto px-4 py-6 text-center">
-          <p className="text-muted-foreground">{t('tagNotFound')}</p>
-          <Button onClick={() => navigate('/')} className="mt-4">
-            {t('backToHome')}
-          </Button>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+            <Tag className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-medium text-foreground mb-2">
+            {t('tagNotFound')}
+          </h2>
+          <p className="text-muted-foreground text-sm mb-6">
+            {language === 'ru' 
+              ? 'Тег не найден или ещё не создан. Создайте общие теги в настройках профиля.'
+              : 'Tag not found or not created yet. Create common tags in profile settings.'}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {language === 'ru' ? 'Назад' : 'Back'}
+            </Button>
+            <Button onClick={() => navigate('/')}>
+              {t('backToHome')}
+            </Button>
+          </div>
         </div>
       </div>
     );
+  }
+  
+  // Safety check - if still no tag, return null
+  if (!tag) {
+    return null;
   }
 
   const isRu = language === 'ru';
