@@ -10,6 +10,14 @@ export interface HabitTag {
   color: string;
 }
 
+export type HabitPeriodType = 'none' | 'week' | 'month' | 'quarter' | 'year' | 'custom';
+
+export interface HabitPeriod {
+  type: HabitPeriodType;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface Habit {
   id: string;
   name: string;
@@ -22,6 +30,10 @@ export interface Habit {
   streak: number;
   categoryId?: string;
   tagIds: string[];
+  period?: HabitPeriod;
+  archivedAt?: string;
+  postponeCount?: number;
+  postponedUntil?: string;
 }
 
 export interface HabitCompletion {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Newspaper, Calendar, Sparkles, Zap, Gift, Crown, Bell } from 'lucide-react';
+import { ArrowLeft, Newspaper, Calendar, Sparkles, Zap, Gift, Crown, Bell, Archive, CalendarRange } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,48 @@ interface NewsItem {
 }
 
 const newsItems: NewsItem[] = [
+  {
+    id: 'gcal',
+    date: '2025-01-11',
+    title: { 
+      ru: 'Синхронизация с Google Calendar и экспорт .ics!', 
+      en: 'Google Calendar sync and .ics export!' 
+    },
+    content: { 
+      ru: 'PRO-пользователи могут подключить Google Calendar и экспортировать привычки/задачи в .ics формат для Apple Calendar!', 
+      en: 'PRO users can connect Google Calendar and export habits/tasks to .ics format for Apple Calendar!' 
+    },
+    type: 'feature',
+    icon: <CalendarRange className="w-5 h-5 text-blue-500" />
+  },
+  {
+    id: 'archive',
+    date: '2025-01-11',
+    title: { 
+      ru: 'Архив с календарным просмотром!', 
+      en: 'Archive with calendar view!' 
+    },
+    content: { 
+      ru: 'Новая страница Архива (PRO): просматривайте историю привычек, задач и финансов в удобном календарном виде по неделям, месяцам и кварталам!', 
+      en: 'New Archive page (PRO): view history of habits, tasks, and finance in a convenient calendar view by weeks, months, and quarters!' 
+    },
+    type: 'feature',
+    icon: <Archive className="w-5 h-5 text-purple-500" />
+  },
+  {
+    id: 'periods',
+    date: '2025-01-11',
+    title: { 
+      ru: 'Периоды для привычек и задач!', 
+      en: 'Periods for habits and tasks!' 
+    },
+    content: { 
+      ru: 'Теперь можно указать период действия привычки (неделя/месяц/квартал/год или свой) — привычка будет активна каждый целевой день периода!', 
+      en: 'Now you can specify the active period for habits (week/month/quarter/year or custom) — the habit will be active on each target day!' 
+    },
+    type: 'feature',
+    icon: <Calendar className="w-5 h-5 text-green-500" />
+  },
   {
     id: '0',
     date: '2025-01-11',
@@ -47,48 +89,6 @@ const newsItems: NewsItem[] = [
     },
     type: 'feature',
     icon: <Gift className="w-5 h-5 text-purple-500" />
-  },
-  {
-    id: '2',
-    date: '2025-01-09',
-    title: { 
-      ru: 'Конфетти и звуки при выполнении!', 
-      en: 'Confetti and sounds on completion!' 
-    },
-    content: { 
-      ru: 'Теперь при отметке привычки, задачи или финансовой операции как выполненной — появляется анимация конфетти и приятный звуковой эффект. Можно отключить в настройках.', 
-      en: 'Now when marking a habit, task, or financial transaction as complete — confetti animation and a pleasant sound effect appear. Can be disabled in settings.' 
-    },
-    type: 'feature',
-    icon: <Sparkles className="w-5 h-5 text-yellow-500" />
-  },
-  {
-    id: '3',
-    date: '2025-01-08',
-    title: { 
-      ru: 'Партнёрская программа 2.0', 
-      en: 'Partner Program 2.0' 
-    },
-    content: { 
-      ru: 'Обновлённая партнёрская программа с калькулятором доходов, бонусами за вехи и возможностью вывода заработка. Приглашайте друзей и зарабатывайте!', 
-      en: 'Updated partner program with earnings calculator, milestone bonuses, and withdrawal options. Invite friends and earn!' 
-    },
-    type: 'promo',
-    icon: <Crown className="w-5 h-5 text-amber-500" />
-  },
-  {
-    id: '4',
-    date: '2025-01-05',
-    title: { 
-      ru: 'Рейтинг и лента достижений', 
-      en: 'Rating and achievements feed' 
-    },
-    content: { 
-      ru: 'Соревнуйтесь с другими пользователями в рейтинге ТОП-100! Публикуйте свои достижения в ленте и получайте лайки.', 
-      en: 'Compete with other users in the TOP-100 rating! Post your achievements in the feed and get likes.' 
-    },
-    type: 'feature',
-    icon: <Zap className="w-5 h-5 text-green-500" />
   },
 ];
 

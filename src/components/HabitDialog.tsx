@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Habit, HABIT_ICONS, HABIT_COLORS, HabitCategory, HabitTag } from '@/types/habit';
+import { X, Calendar, CalendarRange } from 'lucide-react';
+import { Habit, HABIT_ICONS, HABIT_COLORS, HabitCategory, HabitTag, HabitPeriodType, HabitPeriod } from '@/types/habit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,8 @@ import { TranslationKey } from '@/i18n/translations';
 import { cn } from '@/lib/utils';
 import { TagSelector } from '@/components/TagSelector';
 import { useAuth } from '@/hooks/useAuth';
+import { getPeriodDates, getPeriodLabel, PeriodType } from '@/utils/periodUtils';
+import { format, addDays, addWeeks, addMonths, addQuarters, addYears } from 'date-fns';
 
 interface HabitDialogProps {
   open: boolean;
@@ -22,6 +24,15 @@ interface HabitDialogProps {
 
 const WEEKDAY_KEYS: TranslationKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+const PERIOD_OPTIONS: { value: HabitPeriodType; labelRu: string; labelEn: string }[] = [
+  { value: 'none', labelRu: 'Без периода', labelEn: 'No period' },
+  { value: 'week', labelRu: 'Неделя', labelEn: 'Week' },
+  { value: 'month', labelRu: 'Месяц', labelEn: 'Month' },
+  { value: 'quarter', labelRu: 'Квартал', labelEn: 'Quarter' },
+  { value: 'year', labelRu: 'Год', labelEn: 'Year' },
+  { value: 'custom', labelRu: 'Свой период', labelEn: 'Custom' },
+];
+
 export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: HabitDialogProps) {
   const { user } = useAuth();
   const [name, setName] = useState('');
@@ -31,7 +42,11 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [commonTagIds, setCommonTagIds] = useState<string[]>([]);
-  const { t } = useTranslation();
+  const [periodType, setPeriodType] = useState<HabitPeriodType>('none');
+  const [customStartDate, setCustomStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [customEndDate, setCustomEndDate] = useState(format(addMonths(new Date(), 1), 'yyyy-MM-dd'));
+  const { t, language } = useTranslation();
+  const isRussian = language === 'ru';
 
   useEffect(() => {
     if (habit) {
@@ -40,10 +55,12 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       setColor(habit.color);
       setTargetDays(habit.targetDays);
       setCategoryId(habit.categoryId);
-      // Split tagIds into local and common tags based on tag source
       const localTagIdSet = new Set(tags.map(t => t.id));
       setTagIds((habit.tagIds || []).filter(id => localTagIdSet.has(id)));
       setCommonTagIds((habit.tagIds || []).filter(id => !localTagIdSet.has(id)));
+      setPeriodType(habit.period?.type || 'none');
+      if (habit.period?.startDate) setCustomStartDate(habit.period.startDate);
+      if (habit.period?.endDate) setCustomEndDate(habit.period.endDate);
     } else {
       setName('');
       setIcon(HABIT_ICONS[0]);
@@ -52,12 +69,25 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       setCategoryId(undefined);
       setTagIds([]);
       setCommonTagIds([]);
+      setPeriodType('none');
+      setCustomStartDate(format(new Date(), 'yyyy-MM-dd'));
+      setCustomEndDate(format(addMonths(new Date(), 1), 'yyyy-MM-dd'));
     }
   }, [habit, open, tags]);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    // Combine local and common tagIds
+    
+    let period: HabitPeriod | undefined;
+    if (periodType !== 'none') {
+      if (periodType === 'custom') {
+        period = { type: periodType, startDate: customStartDate, endDate: customEndDate };
+      } else {
+        const dates = getPeriodDates(periodType as PeriodType);
+        period = { type: periodType, startDate: dates.startDate, endDate: dates.endDate };
+      }
+    }
+    
     const allTagIds = [...tagIds, ...commonTagIds];
     onSave({
       name: name.trim(),
@@ -67,6 +97,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       targetDays,
       categoryId,
       tagIds: allTagIds,
+      period,
     });
     onClose();
   };
@@ -91,7 +122,6 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -100,7 +130,6 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
             className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
           />
           
-          {/* Dialog */}
           <motion.div
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
@@ -128,6 +157,66 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
                   placeholder={t('habitNamePlaceholder')}
                   className="h-12 text-base"
                 />
+              </div>
+
+              {/* Period Selection */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <CalendarRange className="w-4 h-4" />
+                  {isRussian ? 'Период действия' : 'Active Period'}
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {PERIOD_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setPeriodType(opt.value)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                        periodType === opt.value
+                          ? "bg-habit text-white"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {isRussian ? opt.labelRu : opt.labelEn}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Custom date inputs */}
+                {periodType === 'custom' && (
+                  <div className="flex gap-2 mt-2">
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {isRussian ? 'Начало' : 'Start'}
+                      </Label>
+                      <Input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {isRussian ? 'Конец' : 'End'}
+                      </Label>
+                      <Input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {periodType !== 'none' && periodType !== 'custom' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isRussian 
+                      ? 'Привычка будет активна на каждый целевой день выбранного периода'
+                      : 'Habit will be active on each target day of the selected period'}
+                  </p>
+                )}
               </div>
 
               {/* Category */}
@@ -191,7 +280,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
                 </div>
               )}
 
-              {/* Common Tags (from profile) */}
+              {/* Common Tags */}
               {user && (
                 <div className="space-y-2">
                   <Label>{t('commonTags')}</Label>
