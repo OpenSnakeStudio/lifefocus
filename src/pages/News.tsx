@@ -21,6 +21,20 @@ interface NewsItem {
 
 const newsItems: NewsItem[] = [
   {
+    id: '0',
+    date: '2025-01-11',
+    title: { 
+      ru: 'Система уровней и XP для PRO!', 
+      en: 'Level System and XP for PRO!' 
+    },
+    content: { 
+      ru: 'PRO-пользователи теперь могут зарабатывать XP за задачи, привычки и звёзды! Повышайте уровень и получайте уникальные титулы от "Новичок" до "Чемпион"!', 
+      en: 'PRO users can now earn XP for tasks, habits, and stars! Level up and unlock unique titles from "Newbie" to "Champion"!' 
+    },
+    type: 'feature',
+    icon: <Zap className="w-5 h-5 text-purple-500" />
+  },
+  {
     id: '1',
     date: '2025-01-10',
     title: { 
