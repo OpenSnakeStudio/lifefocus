@@ -976,6 +976,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_levels: {
+        Row: {
+          created_at: string
+          current_level: number
+          habits_completed: number
+          id: string
+          stars_earned: number
+          tasks_completed: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+          xp_to_next_level: number
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          habits_completed?: number
+          id?: string
+          stars_earned?: number
+          tasks_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+          xp_to_next_level?: number
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          habits_completed?: number
+          id?: string
+          stars_earned?: number
+          tasks_completed?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+          xp_to_next_level?: number
+        }
+        Relationships: []
+      }
       user_permissions: {
         Row: {
           analytics_enabled: boolean
@@ -1167,6 +1206,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_xp: {
+        Args: { p_user_id: string; p_xp_amount: number; p_xp_source: string }
+        Returns: {
+          leveled_up: boolean
+          new_level: number
+          new_total_xp: number
+        }[]
+      }
+      calculate_level_from_xp: {
+        Args: { xp: number }
+        Returns: {
+          level: number
+          xp_for_next: number
+          xp_in_current_level: number
+        }[]
+      }
       calculate_referral_bonus: {
         Args: { referrer_user_id: string }
         Returns: number
