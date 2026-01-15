@@ -58,16 +58,19 @@ export function useFinance() {
   const saveTransactions = useCallback((newTransactions: FinanceTransaction[]) => {
     setTransactions(newTransactions);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newTransactions));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveCategories = useCallback((newCategories: FinanceCategory[]) => {
     setCategories(newCategories);
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveTags = useCallback((newTags: FinanceTag[]) => {
     setTags(newTags);
     localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const addTransaction = useCallback((transaction: Omit<FinanceTransaction, 'id' | 'createdAt' | 'completed'>) => {

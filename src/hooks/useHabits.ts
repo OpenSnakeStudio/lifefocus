@@ -60,16 +60,19 @@ export function useHabits() {
   const saveHabits = useCallback((newHabits: Habit[]) => {
     setHabits(newHabits);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newHabits));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveCategories = useCallback((newCategories: HabitCategory[]) => {
     setCategories(newCategories);
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveTags = useCallback((newTags: HabitTag[]) => {
     setTags(newTags);
     localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const addHabit = useCallback((habit: Omit<Habit, 'id' | 'createdAt' | 'completedDates' | 'streak'>) => {

@@ -76,16 +76,19 @@ export function useTasks() {
   const saveTasks = useCallback((newTasks: Task[]) => {
     setTasks(newTasks);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveCategories = useCallback((newCategories: TaskCategory[]) => {
     setCategories(newCategories);
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(newCategories));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const saveTags = useCallback((newTags: TaskTag[]) => {
     setTags(newTags);
     localStorage.setItem(TAGS_KEY, JSON.stringify(newTags));
+    window.dispatchEvent(new CustomEvent('habitflow-data-changed'));
   }, []);
 
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'completed'>) => {

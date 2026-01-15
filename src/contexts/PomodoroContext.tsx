@@ -368,18 +368,75 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }
   }, [currentPhase, completedSessions, settings, getPhaseTime, completeSession, playNotificationSound, triggerVibration, saveState]);
 
-  // Timer tick
+  // Timer tick with background support
   useEffect(() => {
     if (isRunning) {
+      // Use requestAnimationFrame for better background support
+      let lastTime = Date.now();
+      let animationId: number;
+      
+      const tick = () => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - lastTime) / 1000);
+        
+        if (elapsed >= 1) {
+          lastTime = now;
+          setTimeLeft(prev => {
+            const newTime = prev - elapsed;
+            if (newTime <= 0) {
+              nextPhase();
+              return 0;
+            }
+            return newTime;
+          });
+        }
+        
+        animationId = requestAnimationFrame(tick);
+      };
+      
+      // Also use setInterval as fallback for when tab is not visible
       intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
+        if (sessionStartRef.current) {
+          const elapsed = Math.floor((Date.now() - new Date(sessionStartRef.current).getTime()) / 1000);
+          const phaseDuration = getPhaseTime(currentPhase);
+          const remaining = Math.max(0, phaseDuration - elapsed);
+          
+          if (remaining <= 0) {
             nextPhase();
-            return 0;
+          } else {
+            setTimeLeft(remaining);
           }
-          return prev - 1;
-        });
+        }
       }, 1000);
+      
+      animationId = requestAnimationFrame(tick);
+      
+      // Handle visibility change for background support
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && sessionStartRef.current) {
+          // Recalculate time when tab becomes visible
+          const elapsed = Math.floor((Date.now() - new Date(sessionStartRef.current).getTime()) / 1000);
+          const phaseDuration = getPhaseTime(currentPhase);
+          const remaining = Math.max(0, phaseDuration - elapsed);
+          
+          if (remaining <= 0) {
+            nextPhase();
+          } else {
+            setTimeLeft(remaining);
+          }
+          lastTime = Date.now();
+        }
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        cancelAnimationFrame(animationId);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -391,7 +448,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, nextPhase]);
+  }, [isRunning, nextPhase, currentPhase, getPhaseTime]);
 
   // Save state when running state changes
   useEffect(() => {

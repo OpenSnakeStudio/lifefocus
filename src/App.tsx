@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,8 @@ import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { useReferralActivityTracker } from "@/hooks/useReferralActivityTracker";
 import { useReferralNotifications } from "@/hooks/useReferralNotifications";
+import { useCloudSync } from "@/hooks/useCloudSync";
+import { CloudRestoreDialog } from "@/components/profile/CloudRestoreDialog";
 import Dashboard from "./pages/Dashboard";
 import Habits from "./pages/Habits";
 import Tasks from "./pages/Tasks";
@@ -30,9 +32,32 @@ import RewardsShop from "./pages/RewardsShop";
 import StarHistory from "./pages/StarHistory";
 import Archive from "./pages/Archive";
 import Focus from "./pages/Focus";
+import UserProfile from "./pages/UserProfile";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Cloud sync component that runs in background
+const CloudSyncProvider = ({ children }: { children: React.ReactNode }) => {
+  const { triggerSync } = useCloudSync();
+
+  // Listen for localStorage changes and trigger sync
+  useEffect(() => {
+    const handleStorageChange = () => {
+      triggerSync();
+    };
+
+    // Custom event for internal changes
+    window.addEventListener('habitflow-data-changed', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('habitflow-data-changed', handleStorageChange);
+    };
+  }, [triggerSync]);
+
+  return <>{children}</>;
+};
 
 const AppContent = () => {
   const [habitDialogOpen, setHabitDialogOpen] = useState(false);
@@ -44,7 +69,8 @@ const AppContent = () => {
   useReferralNotifications();
 
   return (
-    <>
+    <CloudSyncProvider>
+      <CloudRestoreDialog />
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route 
@@ -91,6 +117,8 @@ const AppContent = () => {
         <Route path="/star-history" element={<StarHistory />} />
         <Route path="/archive" element={<Archive />} />
         <Route path="/focus" element={<Focus />} />
+        <Route path="/user/:userId" element={<UserProfile />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNavigation 
@@ -98,7 +126,7 @@ const AppContent = () => {
         onAddTask={() => setTaskDialogOpen(true)}
         onAddTransaction={() => setTransactionDialogOpen(true)}
       />
-    </>
+    </CloudSyncProvider>
   );
 };
 

@@ -61,23 +61,23 @@ export function RatingPodium({ users, userRewards, type, isRussian, onUserClick 
     }
   };
 
-  // Size for avatars: 1st place is 1.5x bigger
+  // Size for avatars: 1st place is 1.5x bigger, all doubled
   const getAvatarSize = (rank: number) => {
-    if (rank === 1) return 'w-24 h-24'; // 96px
-    return 'w-16 h-16'; // 64px
+    if (rank === 1) return 'w-48 h-48'; // 192px (was 96px, now 2x)
+    return 'w-32 h-32'; // 128px (was 64px, now 2x)
   };
 
   const getBadgeSize = (rank: number) => {
-    if (rank === 1) return 'w-8 h-8 text-sm';
-    return 'w-6 h-6 text-xs';
+    if (rank === 1) return 'w-12 h-12 text-lg';
+    return 'w-10 h-10 text-base';
   };
 
   if (top3.length === 0) return null;
 
   return (
-    <div className="mb-6">
-      {/* Top 3 - Aligned to bottom */}
-      <div className="flex items-end justify-center gap-4 mb-4">
+    <div className="mb-8">
+      {/* Top 3 - Aligned to bottom with larger gaps */}
+      <div className="flex items-end justify-center gap-8 mb-4">
         {podiumOrder.map((user, index) => {
           if (!user) return null;
           const actualRank = user.rank;
@@ -113,12 +113,12 @@ export function RatingPodium({ users, userRewards, type, isRussian, onUserClick 
               </div>
 
               {/* Name */}
-              <p className="text-xs font-medium text-center max-w-[80px] truncate mt-4 mb-1">
+              <p className="text-sm font-medium text-center max-w-[160px] truncate mt-5 mb-1">
                 {user.display_name}
               </p>
 
               {/* Value */}
-              <div className="flex items-center gap-1 text-sm font-semibold">
+              <div className="flex items-center gap-1 text-base font-semibold">
                 {getIcon()}
                 {getValue(user).toLocaleString()}
               </div>

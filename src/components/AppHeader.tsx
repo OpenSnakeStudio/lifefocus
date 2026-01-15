@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gift, Trophy, Newspaper, Flame, Aperture } from 'lucide-react';
+import { Gift, Trophy, Newspaper, Flame, Aperture, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { useWeather, getWeatherIcon } from '@/hooks/useWeather';
 import { useStars } from '@/hooks/useStars';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReferralModal } from '@/components/ReferralModal';
-import { WeatherModal } from '@/components/WeatherModal';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserAvatarWithFrame } from '@/components/rewards/UserAvatarWithFrame';
 import { UserBadges } from '@/components/rewards/UserBadges';
@@ -18,11 +17,10 @@ import { UserBadges } from '@/components/rewards/UserBadges';
 export function AppHeader() {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
-  const { weather, loading: weatherLoading } = useWeather();
   const { userStars } = useStars();
+  const { unreadCount } = useNotifications();
   const { t } = useTranslation();
   const [referralModalOpen, setReferralModalOpen] = useState(false);
-  const [weatherModalOpen, setWeatherModalOpen] = useState(false);
 
   const userName = profile?.display_name || user?.email?.split('@')[0] || t('guest');
 
@@ -47,19 +45,8 @@ export function AppHeader() {
               <UserBadges badgeIds={activeBadges} maxDisplay={2} size="sm" />
             </div>
 
-            {/* Center: Weather + Streak */}
+            {/* Center: Streak only */}
             <div className="flex items-center gap-3">
-              {!weatherLoading && weather && (
-                <button 
-                  onClick={() => setWeatherModalOpen(true)}
-                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                >
-                  <span className="text-base">{getWeatherIcon(weather.weatherCode, weather.isDay)}</span>
-                  <span className="font-medium">{weather.temperature}°C</span>
-                </button>
-              )}
-              
-              {/* Streak Display only */}
               {userStars && userStars.current_streak_days > 0 && (
                 <Badge variant="outline" className="gap-1 px-2 py-1 border-orange-500/50">
                   <Flame className="h-3.5 w-3.5 text-orange-500" />
@@ -68,8 +55,29 @@ export function AppHeader() {
               )}
             </div>
 
-            {/* Right: News + Focus + Rating + Theme + Invite */}
+            {/* Right: Notifications + News + Focus + Rating + Theme + Invite */}
             <div className="flex items-center gap-1 sm:gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/notifications')}
+                    className="relative text-primary hover:text-primary/80 hover:bg-primary/10"
+                  >
+                    <Bell className="w-5 h-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center px-1">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Уведомления
+                </TooltipContent>
+              </Tooltip>
+
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -141,11 +149,6 @@ export function AppHeader() {
       <ReferralModal 
         open={referralModalOpen} 
         onOpenChange={setReferralModalOpen} 
-      />
-
-      <WeatherModal
-        open={weatherModalOpen}
-        onOpenChange={setWeatherModalOpen}
       />
     </>
   );

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useLeaderboard, PublicProfile } from '@/hooks/useLeaderboard';
+import { useLeaderboardFiltered, LeaderboardPeriod } from '@/hooks/useLeaderboardFiltered';
 import { useStars } from '@/hooks/useStars';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchUserRewardItemsBatch, UserRewardItems } from '@/hooks/useUserRewardItems';
@@ -26,7 +28,7 @@ export default function Rating() {
   const { language } = useTranslation();
   const isRussian = language === 'ru';
   const { user, profile } = useAuth();
-  const { leaderboard, currentUserRank, loading: leaderboardLoading, getPublicProfile } = useLeaderboard();
+  const { getPublicProfile } = useLeaderboard();
   const { userStars } = useStars();
 
   const [selectedProfile, setSelectedProfile] = useState<PublicProfile | null>(null);
@@ -39,6 +41,9 @@ export default function Rating() {
   const [ratingType, setRatingType] = useState<RatingType>('stars');
   const [ratingPeriod, setRatingPeriod] = useState<RatingPeriod>('all');
 
+  // Use filtered leaderboard hook
+  const { leaderboard, currentUserRank, loading: leaderboardLoading } = useLeaderboardFiltered(ratingPeriod as LeaderboardPeriod);
+
   // Fetch reward items for leaderboard users
   useEffect(() => {
     if (leaderboard.length > 0) {
@@ -47,11 +52,10 @@ export default function Rating() {
     }
   }, [leaderboard]);
 
-  const handleUserClick = async (userId: string) => {
-    setProfileLoading(true);
-    const profile = await getPublicProfile(userId);
-    setSelectedProfile(profile);
-    setProfileLoading(false);
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId: string) => {
+    navigate(`/user/${userId}`);
   };
 
   const handleGetContacts = (profile: PublicProfile) => {

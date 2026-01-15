@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Aperture, Plus, ThumbsUp, ThumbsDown, MessageCircle, Vote, Camera, Trophy, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -19,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function Focus() {
   const { language } = useTranslation();
   const isRussian = language === 'ru';
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { dailyPostCount, dailyLimit, reactToPost } = useAchievementsFeed();
 
@@ -100,13 +102,21 @@ export default function Focus() {
                   <Card className="overflow-hidden">
                     {/* Post Header */}
                     <div className="flex items-center gap-3 p-4 pb-2">
-                      <UserAvatarWithFrame
-                        avatarUrl={post.user_profile?.avatar_url}
-                        displayName={post.user_profile?.display_name || 'User'}
-                        size="sm"
-                      />
+                      <div 
+                        className="cursor-pointer" 
+                        onClick={() => navigate(`/user/${post.user_id}`)}
+                      >
+                        <UserAvatarWithFrame
+                          avatarUrl={post.user_profile?.avatar_url}
+                          displayName={post.user_profile?.display_name || 'User'}
+                          size="sm"
+                        />
+                      </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">
+                        <p 
+                          className="font-medium text-sm cursor-pointer hover:underline"
+                          onClick={() => navigate(`/user/${post.user_id}`)}
+                        >
                           {post.user_profile?.display_name || 'User'}
                         </p>
                         <p className="text-xs text-muted-foreground">

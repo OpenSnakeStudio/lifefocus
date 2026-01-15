@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { format, subDays, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, eachDayOfInterval, isSameDay, startOfWeek, addDays } from 'date-fns';
 import { ru, enUS, es } from 'date-fns/locale';
 import { Habit } from '@/types/habit';
 import { PeriodSelector, Period } from './PeriodSelector';
@@ -22,9 +22,11 @@ export function CalendarView({ habits, onToggle, initialPeriod = '7' }: Calendar
   const days = useMemo(() => {
     const today = new Date();
     const periodDays = parseInt(period);
+    // Start from the beginning of current week and go forward
+    const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
     return eachDayOfInterval({
-      start: subDays(today, periodDays - 1),
-      end: today,
+      start: weekStart,
+      end: addDays(weekStart, periodDays - 1),
     });
   }, [period]);
 

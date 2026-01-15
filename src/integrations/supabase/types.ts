@@ -65,6 +65,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cloud_user_data: {
+        Row: {
+          checklists: Json | null
+          counters: Json | null
+          created_at: string
+          habits: Json | null
+          id: string
+          notes: Json | null
+          pomodoro_sessions: Json | null
+          tasks: Json | null
+          time_entries: Json | null
+          transactions: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checklists?: Json | null
+          counters?: Json | null
+          created_at?: string
+          habits?: Json | null
+          id?: string
+          notes?: Json | null
+          pomodoro_sessions?: Json | null
+          tasks?: Json | null
+          time_entries?: Json | null
+          transactions?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checklists?: Json | null
+          counters?: Json | null
+          created_at?: string
+          habits?: Json | null
+          id?: string
+          notes?: Json | null
+          pomodoro_sessions?: Json | null
+          tasks?: Json | null
+          time_entries?: Json | null
+          transactions?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cloud_user_settings: {
         Row: {
           celebration_settings: Json | null
@@ -303,12 +348,18 @@ export type Database = {
       }
       notification_settings: {
         Row: {
+          comments_notifications_enabled: boolean | null
           created_at: string
           habit_notification_enabled: boolean
           habit_notification_time: string
           id: string
+          likes_notifications_enabled: boolean | null
           overdue_notification_enabled: boolean | null
           push_token: string | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          subscriptions_notifications_enabled: boolean | null
           task_notification_days_before: number
           task_notification_enabled: boolean
           task_notification_time: string
@@ -317,12 +368,18 @@ export type Database = {
           weather_notification_enabled: boolean | null
         }
         Insert: {
+          comments_notifications_enabled?: boolean | null
           created_at?: string
           habit_notification_enabled?: boolean
           habit_notification_time?: string
           id?: string
+          likes_notifications_enabled?: boolean | null
           overdue_notification_enabled?: boolean | null
           push_token?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          subscriptions_notifications_enabled?: boolean | null
           task_notification_days_before?: number
           task_notification_enabled?: boolean
           task_notification_time?: string
@@ -331,12 +388,18 @@ export type Database = {
           weather_notification_enabled?: boolean | null
         }
         Update: {
+          comments_notifications_enabled?: boolean | null
           created_at?: string
           habit_notification_enabled?: boolean
           habit_notification_time?: string
           id?: string
+          likes_notifications_enabled?: boolean | null
           overdue_notification_enabled?: boolean | null
           push_token?: string | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          subscriptions_notifications_enabled?: boolean | null
           task_notification_days_before?: number
           task_notification_enabled?: boolean
           task_notification_time?: string
@@ -499,16 +562,24 @@ export type Database = {
           ban_count: number | null
           ban_until: string | null
           bio: string | null
+          can_help: string | null
           created_at: string
           display_name: string | null
+          dob: string | null
+          expertise: string | null
           first_day_of_week: number | null
           id: string
+          interests: string[] | null
           is_banned: boolean | null
           is_public: boolean | null
+          job_title: string | null
+          location: string | null
+          phone: string | null
           public_email: string | null
           read_only_until: string | null
           referral_code: string | null
           referred_by: string | null
+          status_tag: string | null
           telegram_username: string | null
           updated_at: string
           user_id: string
@@ -520,16 +591,24 @@ export type Database = {
           ban_count?: number | null
           ban_until?: string | null
           bio?: string | null
+          can_help?: string | null
           created_at?: string
           display_name?: string | null
+          dob?: string | null
+          expertise?: string | null
           first_day_of_week?: number | null
           id?: string
+          interests?: string[] | null
           is_banned?: boolean | null
           is_public?: boolean | null
+          job_title?: string | null
+          location?: string | null
+          phone?: string | null
           public_email?: string | null
           read_only_until?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          status_tag?: string | null
           telegram_username?: string | null
           updated_at?: string
           user_id: string
@@ -541,16 +620,24 @@ export type Database = {
           ban_count?: number | null
           ban_until?: string | null
           bio?: string | null
+          can_help?: string | null
           created_at?: string
           display_name?: string | null
+          dob?: string | null
+          expertise?: string | null
           first_day_of_week?: number | null
           id?: string
+          interests?: string[] | null
           is_banned?: boolean | null
           is_public?: boolean | null
+          job_title?: string | null
+          location?: string | null
+          phone?: string | null
           public_email?: string | null
           read_only_until?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          status_tag?: string | null
           telegram_username?: string | null
           updated_at?: string
           user_id?: string
@@ -1224,6 +1311,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          reference_id: string | null
+          reference_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_permissions: {
         Row: {
           analytics_enabled: boolean
@@ -1314,6 +1440,27 @@ export type Database = {
           total_stars?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
         }
         Relationships: []
       }
