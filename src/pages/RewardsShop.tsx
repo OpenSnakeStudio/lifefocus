@@ -1,15 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useRewardsShop } from '@/hooks/useRewardsShop';
 import { useStars } from '@/hooks/useStars';
 import { AppHeader } from '@/components/AppHeader';
-import { BackButton } from '@/components/BackButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Snowflake, Percent, ShoppingBag, CheckCircle, Clock, Gift } from 'lucide-react';
+import { Star, Snowflake, Percent, ShoppingBag, CheckCircle, Clock, Gift, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -37,6 +37,7 @@ export default function RewardsShop() {
   };
 
   const unusedRewards = getUnusedRewards();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -45,7 +46,9 @@ export default function RewardsShop() {
       <main className="container max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <BackButton />
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <ShoppingBag className="h-7 w-7 text-primary" />
             <h1 className="text-2xl font-bold">
               {isRussian ? 'Магазин наград' : 'Rewards Shop'}

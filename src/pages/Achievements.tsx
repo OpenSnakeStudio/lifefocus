@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Award, Trophy, Lock, Zap, Target, CheckCircle2, Star, TrendingUp, Crown, ShoppingBag, Sparkles, Medal } from 'lucide-react';
-import { BackButton } from '@/components/BackButton';
+import { Award, Trophy, Lock, Zap, Target, CheckCircle2, Star, TrendingUp, Crown, ShoppingBag, Sparkles, Medal, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Achievements as AchievementsComponent } from '@/components/Achievements';
 import { AchievementsPanel } from '@/components/AchievementsPanel';
 import { RewardsShopTab } from '@/components/rewards/RewardsShopTab';
@@ -12,7 +12,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useUserLevel } from '@/hooks/useUserLevel';
 import { useRewardsShop } from '@/hooks/useRewardsShop';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,7 +60,9 @@ export default function AchievementsPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <BackButton />
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center">
               <Trophy className="w-5 h-5 text-white" />
