@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, CheckCheck, Trash2, Heart, MessageCircle, ThumbsDown, ArrowLeft, Settings, UserPlus, Image, MessageSquare } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, Heart, MessageCircle, ThumbsDown, ArrowLeft, Settings, UserPlus, Image, MessageSquare, CheckSquare, Repeat, Target, CloudSun, Filter } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { useNotifications, UserNotification } from '@/hooks/useNotifications';
@@ -11,6 +11,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NotificationSettingsDialog } from '@/components/NotificationSettingsDialog';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type FilterType = 'all' | 'social' | 'productivity' | 'system';
 
 function NotificationIcon({ type }: { type: string }) {
   switch (type) {
@@ -26,9 +29,30 @@ function NotificationIcon({ type }: { type: string }) {
       return <UserPlus className="w-4 h-4 text-green-500" />;
     case 'new_chat_message':
       return <MessageSquare className="w-4 h-4 text-green-500" />;
+    case 'task':
+    case 'task_reminder':
+    case 'task_overdue':
+      return <CheckSquare className="w-4 h-4 text-blue-500" />;
+    case 'habit':
+    case 'habit_reminder':
+      return <Repeat className="w-4 h-4 text-green-500" />;
+    case 'goal':
+    case 'goal_progress':
+      return <Target className="w-4 h-4 text-amber-500" />;
+    case 'weather':
+      return <CloudSun className="w-4 h-4 text-sky-500" />;
     default:
       return <Bell className="w-4 h-4 text-primary" />;
   }
+}
+
+function getNotificationCategory(type: string): FilterType {
+  const socialTypes = ['like', 'dislike', 'comment', 'new_post', 'new_follower', 'new_chat_message'];
+  const productivityTypes = ['task', 'task_reminder', 'task_overdue', 'habit', 'habit_reminder', 'goal', 'goal_progress', 'weather'];
+  
+  if (socialTypes.includes(type)) return 'social';
+  if (productivityTypes.includes(type)) return 'productivity';
+  return 'system';
 }
 
 function NotificationItem({ 
@@ -144,6 +168,12 @@ export default function Notifications() {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const isRussian = language === 'ru';
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [filter, setFilter] = useState<FilterType>('all');
+
+  const filteredNotifications = useMemo(() => {
+    if (filter === 'all') return notifications;
+    return notifications.filter(n => getNotificationCategory(n.type) === filter);
+  }, [notifications, filter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -198,6 +228,24 @@ export default function Notifications() {
 
         <NotificationSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
 
+        {/* Filter Tabs */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)} className="mb-4">
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="all" className="text-xs">
+              {isRussian ? 'Все' : 'All'}
+            </TabsTrigger>
+            <TabsTrigger value="social" className="text-xs">
+              {isRussian ? 'Социальные' : 'Social'}
+            </TabsTrigger>
+            <TabsTrigger value="productivity" className="text-xs">
+              {isRussian ? 'Задачи' : 'Tasks'}
+            </TabsTrigger>
+            <TabsTrigger value="system" className="text-xs">
+              {isRussian ? 'Система' : 'System'}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* Notifications List */}
         {isLoading ? (
           <div className="space-y-3">
@@ -215,7 +263,7 @@ export default function Notifications() {
               </Card>
             ))}
           </div>
-        ) : notifications.length === 0 ? (
+        ) : filteredNotifications.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
@@ -234,7 +282,7 @@ export default function Notifications() {
         ) : (
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">
-              {notifications.map(notification => (
+              {filteredNotifications.map(notification => (
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
