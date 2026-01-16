@@ -61,23 +61,23 @@ export function RatingPodium({ users, userRewards, type, isRussian, onUserClick 
     }
   };
 
-  // Size for avatars: 1st place is 1.5x bigger, all doubled
+  // Size for avatars: increased 2x from previous
   const getAvatarSize = (rank: number) => {
-    if (rank === 1) return 'w-48 h-48'; // 192px (was 96px, now 2x)
-    return 'w-32 h-32'; // 128px (was 64px, now 2x)
+    if (rank === 1) return 'w-24 h-24'; // 96px (was 48px)
+    return 'w-16 h-16'; // 64px (was 32px)
   };
 
   const getBadgeSize = (rank: number) => {
-    if (rank === 1) return 'w-12 h-12 text-lg';
-    return 'w-10 h-10 text-base';
+    if (rank === 1) return 'w-8 h-8 text-sm';
+    return 'w-6 h-6 text-xs';
   };
 
   if (top3.length === 0) return null;
 
   return (
-    <div className="mb-8">
-      {/* Top 3 - Aligned to bottom with larger gaps */}
-      <div className="flex items-end justify-center gap-8 mb-4">
+    <div className="mb-6">
+      {/* Top 3 - Aligned to bottom with increased gaps */}
+      <div className="flex items-end justify-center gap-6 mb-4">
         {podiumOrder.map((user, index) => {
           if (!user) return null;
           const actualRank = user.rank;
@@ -85,9 +85,14 @@ export function RatingPodium({ users, userRewards, type, isRussian, onUserClick 
           return (
             <motion.div
               key={user.user_id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0, y: 50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                delay: index * 0.15,
+                type: 'spring',
+                stiffness: 300,
+                damping: 15
+              }}
               className="flex flex-col items-center cursor-pointer"
               onClick={() => onUserClick(user.user_id)}
             >
@@ -113,12 +118,12 @@ export function RatingPodium({ users, userRewards, type, isRussian, onUserClick 
               </div>
 
               {/* Name */}
-              <p className="text-sm font-medium text-center max-w-[160px] truncate mt-5 mb-1">
+              <p className="text-xs font-medium text-center max-w-[80px] truncate mt-3 mb-0.5">
                 {user.display_name}
               </p>
 
               {/* Value */}
-              <div className="flex items-center gap-1 text-base font-semibold">
+              <div className="flex items-center gap-0.5 text-sm font-semibold">
                 {getIcon()}
                 {getValue(user).toLocaleString()}
               </div>

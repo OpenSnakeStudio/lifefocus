@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, Edit2, Tags, ArrowLeft, Cloud, Settings, Sliders, Volume2, Sparkles, Shield, HardDrive, CloudSun, Bell } from 'lucide-react';
+import { LogOut, Edit2, Tags, ArrowLeft, Cloud, Settings, Sliders, Volume2, Sparkles, Shield, HardDrive, CloudSun, Bell, User, Users } from 'lucide-react';
 import { SyncHistoryPanel } from '@/components/SyncHistory';
 import { TrialStatusCard } from '@/components/profile/TrialStatusCard';
-import { ProfileEditDialog } from '@/components/profile/ProfileEditDialog';
+import { PublicProfileEditDialog } from '@/components/profile/PublicProfileEditDialog';
 import { CommonTagsManager } from '@/components/profile/CommonTagsManager';
 import { SettingsSection } from '@/components/profile/SettingsSection';
 import { ThemeSwitcher } from '@/components/profile/ThemeSwitcher';
@@ -30,7 +30,7 @@ import { toast } from 'sonner';
 export default function ProfileSettings() {
   const { t, language } = useTranslation();
   const navigate = useNavigate();
-  const { user, profile, signOut, loading } = useAuth();
+  const { user, profile, signOut, loading, refetchProfile } = useAuth();
   const { isSyncing, syncAll, syncHistory } = useSupabaseSync();
   const { subscription, currentPlan, isInTrial, trialDaysLeft, trialBonusMonths } = useSubscription();
   const { soundEnabled, confettiEnabled, setSoundEnabled, setConfettiEnabled } = useCelebrationSettings();
@@ -69,9 +69,10 @@ export default function ProfileSettings() {
     navigate('/profile');
   };
 
-  const handleProfileUpdate = useCallback(() => {
-    window.location.reload();
-  }, []);
+  const handleProfileUpdate = useCallback(async () => {
+    // Refetch profile data instead of full page reload
+    await refetchProfile();
+  }, [refetchProfile]);
 
   if (loading) {
     return (
@@ -373,6 +374,62 @@ export default function ProfileSettings() {
           <CommonTagsManager />
         </motion.div>
 
+        {/* Public Profile Link */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.26 }}
+          className="mt-8"
+        >
+          <Link to="/profile/public">
+            <Card className="border-primary/20 hover:border-primary/40 transition-colors cursor-pointer">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">
+                      {isRussian ? 'Публичный профиль' : 'Public Profile'}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {isRussian ? 'Предпросмотр и копирование ссылки' : 'Preview and copy link'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+
+        {/* User Catalog Link */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.27 }}
+          className="mt-8"
+        >
+          <Link to="/users">
+            <Card className="border-accent/20 hover:border-accent/40 transition-colors cursor-pointer">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-foreground">
+                      {isRussian ? 'Каталог пользователей' : 'User Catalog'}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {isRussian ? 'Поиск и подписки' : 'Search and subscriptions'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+
         {/* Backup */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -401,12 +458,25 @@ export default function ProfileSettings() {
           <SettingsSection />
         </motion.div>
 
-        <ProfileEditDialog 
+        <PublicProfileEditDialog 
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          currentDisplayName={profile?.display_name || null}
-          currentAvatarUrl={profile?.avatar_url || null}
           userId={user.id}
+            currentData={{
+              display_name: profile?.display_name || null,
+              avatar_url: profile?.avatar_url || null,
+              bio: profile?.bio || null,
+              telegram_username: profile?.telegram_username || null,
+              public_email: profile?.public_email || null,
+              dob: profile?.dob || null,
+              location: profile?.location || null,
+              job_title: profile?.job_title || null,
+              status_tag: profile?.status_tag || null,
+              interests: profile?.interests || [],
+              expertise: profile?.expertise || null,
+              can_help: profile?.can_help || null,
+              phone: profile?.phone || null,
+            }}
           onUpdate={handleProfileUpdate}
         />
       </div>

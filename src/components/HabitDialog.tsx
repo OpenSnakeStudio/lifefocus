@@ -9,6 +9,7 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { TranslationKey } from '@/i18n/translations';
 import { cn } from '@/lib/utils';
 import { TagSelector } from '@/components/TagSelector';
+import { GoalSelector } from '@/components/goals/GoalSelector';
 import { useAuth } from '@/hooks/useAuth';
 import { getPeriodDates, getPeriodLabel, PeriodType } from '@/utils/periodUtils';
 import { format, addDays, addWeeks, addMonths, addQuarters, addYears } from 'date-fns';
@@ -42,6 +43,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [commonTagIds, setCommonTagIds] = useState<string[]>([]);
+  const [goalId, setGoalId] = useState<string | null>(null);
   const [periodType, setPeriodType] = useState<HabitPeriodType>('none');
   const [customStartDate, setCustomStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [customEndDate, setCustomEndDate] = useState(format(addMonths(new Date(), 1), 'yyyy-MM-dd'));
@@ -58,6 +60,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       const localTagIdSet = new Set(tags.map(t => t.id));
       setTagIds((habit.tagIds || []).filter(id => localTagIdSet.has(id)));
       setCommonTagIds((habit.tagIds || []).filter(id => !localTagIdSet.has(id)));
+      setGoalId((habit as any).goalId || null);
       setPeriodType(habit.period?.type || 'none');
       if (habit.period?.startDate) setCustomStartDate(habit.period.startDate);
       if (habit.period?.endDate) setCustomEndDate(habit.period.endDate);
@@ -69,6 +72,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       setCategoryId(undefined);
       setTagIds([]);
       setCommonTagIds([]);
+      setGoalId(null);
       setPeriodType('none');
       setCustomStartDate(format(new Date(), 'yyyy-MM-dd'));
       setCustomEndDate(format(addMonths(new Date(), 1), 'yyyy-MM-dd'));
@@ -98,7 +102,8 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       categoryId,
       tagIds: allTagIds,
       period,
-    });
+      goalId,
+    } as any);
     onClose();
   };
 
@@ -287,6 +292,17 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
                   <TagSelector 
                     selectedTagIds={commonTagIds} 
                     onChange={setCommonTagIds} 
+                  />
+                </div>
+              )}
+
+              {/* Goal Selector */}
+              {user && (
+                <div className="space-y-2">
+                  <GoalSelector
+                    value={goalId}
+                    onChange={setGoalId}
+                    isRussian={isRussian}
                   />
                 </div>
               )}

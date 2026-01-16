@@ -75,8 +75,8 @@ export function AchievementPublishDialog({
   };
 
   const handleSubmit = async () => {
-    // For ideas, image is optional
-    if (postType !== 'idea' && !imageFile) {
+    // For ideas and success stories without linked task/habit, image is optional
+    if (postType === 'achievement' && !imageFile) {
       toast.error('Добавьте фото');
       return;
     }
@@ -259,7 +259,7 @@ export function AchievementPublishDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !imageFile || !canPost}
+            disabled={isSubmitting || (postType === 'achievement' && !imageFile) || !canPost}
           >
             {isSubmitting ? (
               <>

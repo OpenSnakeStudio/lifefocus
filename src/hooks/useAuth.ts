@@ -13,6 +13,23 @@ interface Profile {
   telegram_username: string | null;
   public_email: string | null;
   created_at: string;
+  updated_at: string;
+  is_public: boolean | null;
+  is_banned: boolean | null;
+  ban_until: string | null;
+  ban_count: number | null;
+  read_only_until: string | null;
+  first_day_of_week: number | null;
+  active_frame: string | null;
+  active_badges: string[] | null;
+  dob: string | null;
+  location: string | null;
+  job_title: string | null;
+  status_tag: string | null;
+  interests: string[] | null;
+  expertise: string | null;
+  can_help: string | null;
+  phone: string | null;
 }
 
 export function useAuth() {
@@ -53,20 +70,30 @@ export function useAuth() {
   }, []);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    
-    if (!error && data) {
-      setProfile(data);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      if (data) {
+        // Cast to Profile type ensuring all fields are included
+        setProfile(data as Profile);
+      }
+    } catch (err) {
+      console.error('Error in fetchProfile:', err);
     }
   };
 
-  const refetchProfile = () => {
+  const refetchProfile = async () => {
     if (user?.id) {
-      fetchProfile(user.id);
+      await fetchProfile(user.id);
     }
   };
 

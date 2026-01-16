@@ -15,14 +15,17 @@ interface RatingTabsProps {
 export function RatingTabs({ type, onTypeChange, period, onPeriodChange, isRussian }: RatingTabsProps) {
   return (
     <div className="space-y-3">
-      {/* Type tabs - Stars/Referrals */}
+      {/* Type tabs - Stars/Likes/Referrals */}
       <Tabs value={type} onValueChange={(v) => onTypeChange(v as RatingType)}>
-        <TabsList className="grid w-full grid-cols-2 h-10 bg-muted/50">
+        <TabsList className="grid w-full grid-cols-3 h-10 bg-muted/50">
           <TabsTrigger value="stars" className="text-sm gap-2 data-[state=active]:bg-background">
-            {isRussian ? 'По звёздам' : 'By stars'}
+            {isRussian ? 'Звёзды' : 'Stars'}
+          </TabsTrigger>
+          <TabsTrigger value="likes" className="text-sm gap-2 data-[state=active]:bg-background">
+            {isRussian ? 'Лайки' : 'Likes'}
           </TabsTrigger>
           <TabsTrigger value="referrals" className="text-sm gap-2 data-[state=active]:bg-background">
-            {isRussian ? 'По рефералам' : 'By referrals'}
+            {isRussian ? 'Рефералы' : 'Referrals'}
           </TabsTrigger>
         </TabsList>
       </Tabs>

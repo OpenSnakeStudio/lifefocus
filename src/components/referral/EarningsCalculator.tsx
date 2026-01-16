@@ -94,14 +94,16 @@ export function EarningsCalculator({ isPro }: EarningsCalculatorProps) {
     const paid = Math.floor(total * (paidPercent[0] / 100));
     const multiplier = periodMultipliers[selectedPeriod];
     
-    const monthlyEarnings = calculateMonthlyAffiliateEarnings(paid, avgPayment);
+    // For monthly calculation, divide annual payment by 12
+    const monthlyPayment = avgPayment / 12;
+    const monthlyEarnings = calculateMonthlyAffiliateEarnings(paid, monthlyPayment);
     
     return {
       paid,
       total,
-      commissions: monthlyEarnings.commissions * multiplier,
-      milestones: monthlyEarnings.milestones * multiplier,
-      totalEarnings: monthlyEarnings.total * multiplier,
+      commissions: Math.round(monthlyEarnings.commissions * multiplier),
+      milestones: monthlyEarnings.milestones, // Milestones are one-time, not multiplied
+      totalEarnings: Math.round(monthlyEarnings.commissions * multiplier) + monthlyEarnings.milestones,
       level: monthlyEarnings.level,
       commissionPercent: monthlyEarnings.commissionPercent,
       isVIP: monthlyEarnings.isVIP,

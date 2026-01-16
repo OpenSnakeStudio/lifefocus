@@ -1,7 +1,8 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Award, ArrowLeft, Trophy, Lock, Zap, Target, CheckCircle2, Star, TrendingUp, Crown, ShoppingBag, Sparkles } from 'lucide-react';
+import { Award, ArrowLeft, Trophy, Lock, Zap, Target, CheckCircle2, Star, TrendingUp, Crown, ShoppingBag, Sparkles, Medal } from 'lucide-react';
 import { Achievements as AchievementsComponent } from '@/components/Achievements';
+import { AchievementsPanel } from '@/components/AchievementsPanel';
 import { RewardsShopTab } from '@/components/rewards/RewardsShopTab';
 import { StarProgram } from '@/components/rewards/StarProgram';
 import { AppHeader } from '@/components/AppHeader';
@@ -75,18 +76,22 @@ export default function AchievementsPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="badges-level">
-              <Award className="w-4 h-4 mr-2" />
-              {isRussian ? 'Бейджи' : 'Badges'}
+              <Award className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">{isRussian ? 'Бейджи' : 'Badges'}</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements">
+              <Medal className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">{isRussian ? 'Достижения' : 'Achievements'}</span>
             </TabsTrigger>
             <TabsTrigger value="shop">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              {isRussian ? 'Магазин' : 'Shop'}
+              <ShoppingBag className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">{isRussian ? 'Магазин' : 'Shop'}</span>
             </TabsTrigger>
             <TabsTrigger value="star-program">
-              <Sparkles className="w-4 h-4 mr-2" />
-              {isRussian ? 'Звёзды' : 'Stars'}
+              <Sparkles className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">{isRussian ? 'Звёзды' : 'Stars'}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -274,6 +279,16 @@ export default function AchievementsPage() {
                 </motion.div>
               ) : null
             )}
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <AchievementsPanel />
+            </motion.div>
           </TabsContent>
 
           {/* Shop Tab */}

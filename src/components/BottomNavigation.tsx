@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Target, CheckSquare, Wallet, Plus, Wrench, BarChart3 } from 'lucide-react';
+import { Home, Target, CheckSquare, Wallet, Plus, Wrench, Aperture } from 'lucide-react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { GoalDialog } from '@/components/goals/GoalDialog';
+import { AchievementPublishDialog } from '@/components/AchievementPublishDialog';
+import { useGoals } from '@/hooks/useGoals';
 
 interface BottomNavigationProps {
   onAddHabit: () => void;
@@ -17,9 +20,14 @@ export function BottomNavigation({
   onAddTransaction 
 }: BottomNavigationProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [goalDialogOpen, setGoalDialogOpen] = useState(false);
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const { addGoal } = useGoals();
+
+  const isRussian = language === 'ru';
 
   const navItems = [
     { path: '/', icon: Home, label: t('home'), color: 'hsl(var(--primary))' },
@@ -28,29 +36,42 @@ export function BottomNavigation({
     // Plus button goes here (index 3)
     { path: '/finance', icon: Wallet, label: t('finance'), color: 'hsl(var(--finance))' },
     { path: '/services', icon: Wrench, label: t('services'), color: 'hsl(var(--service))' },
-    { path: '/statistics', icon: BarChart3, label: t('statistics'), color: 'hsl(var(--primary))' },
+    { path: '/goals', icon: Target, label: isRussian ? 'Цели' : 'Goals', color: 'hsl(262, 80%, 55%)' },
   ];
 
   const quickAddItems = [
+    { label: isRussian ? 'Цель' : 'Goal', icon: Target, color: 'hsl(262, 80%, 55%)', action: () => setGoalDialogOpen(true), path: '/goals' },
     { label: t('habit'), icon: Target, color: 'hsl(var(--habit))', action: onAddHabit, path: '/habits' },
     { label: t('task'), icon: CheckSquare, color: 'hsl(var(--task))', action: onAddTask, path: '/tasks' },
     { label: t('transaction'), icon: Wallet, color: 'hsl(var(--finance))', action: onAddTransaction, path: '/finance' },
+    { label: isRussian ? 'Пост' : 'Post', icon: Aperture, color: 'hsl(var(--primary))', action: () => setPostDialogOpen(true), path: '/focus' },
   ];
 
   const handleQuickAdd = (item: typeof quickAddItems[0]) => {
     setIsMenuOpen(false);
-    navigate(item.path);
-    setTimeout(() => {
+    // For goal and post dialogs, don't navigate first
+    if (item.label === (isRussian ? 'Цель' : 'Goal') || item.label === (isRussian ? 'Пост' : 'Post')) {
       item.action();
-    }, 100);
+    } else {
+      navigate(item.path);
+      setTimeout(() => {
+        item.action();
+      }, 100);
+    }
   };
 
   const handleNavClick = (path: string) => {
     navigate(path);
   };
 
+  const handleAddGoal = async (data: any) => {
+    await addGoal(data);
+    setGoalDialogOpen(false);
+    navigate('/goals');
+  };
+
   const leftItems = navItems.slice(0, 3); // Home, Habits, Tasks
-  const rightItems = navItems.slice(3); // Finance, Services, Statistics
+  const rightItems = navItems.slice(3); // Finance, Services, Goals
 
   return (
     <>
@@ -162,6 +183,19 @@ export function BottomNavigation({
           ))}
         </div>
       </nav>
+
+      {/* Goal Dialog */}
+      <GoalDialog
+        open={goalDialogOpen}
+        onOpenChange={setGoalDialogOpen}
+        onSave={handleAddGoal}
+      />
+
+      {/* Post Dialog */}
+      <AchievementPublishDialog
+        open={postDialogOpen}
+        onOpenChange={setPostDialogOpen}
+      />
     </>
   );
 }

@@ -66,12 +66,15 @@ export function PublicProfileView({ profile: initialProfile, userId, onBack, onV
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(initialProfile || null);
   const [loading, setLoading] = useState(!initialProfile && !!userId);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (userId && !initialProfile) {
       const fetchProfile = async () => {
         setLoading(true);
+        setFetchError(null);
         try {
+          // All profiles are public - fetch directly
           const { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -79,26 +82,50 @@ export function PublicProfileView({ profile: initialProfile, userId, onBack, onV
             .single();
 
           if (error) throw error;
-          
+
+          if (!data) {
+            setFetchError('Профиль не найден');
+            setProfile(null);
+            setLoading(false);
+            return;
+          }
+
           // Fetch stats
-          const [likesRes, referralsRes, starsRes] = await Promise.all([
-            supabase.from('post_reactions').select('id', { count: 'exact' })
-              .eq('reaction_type', 'like')
-              .in('post_id', 
-                (await supabase.from('achievement_posts').select('id').eq('user_id', userId)).data?.map(p => p.id) || []
-              ),
+          const [postsRes, referralsRes, starsRes] = await Promise.all([
+            supabase.from('achievement_posts').select('id').eq('user_id', userId),
             supabase.from('referrals').select('id', { count: 'exact' }).eq('referrer_id', userId),
-            supabase.from('user_stars').select('total_stars').eq('user_id', userId).single()
+            supabase.from('user_stars').select('total_stars').eq('user_id', userId).single(),
           ]);
+
+          // Get likes count separately
+          let likesCount = 0;
+          if (postsRes.data && postsRes.data.length > 0) {
+            const postIds = postsRes.data.map(p => p.id);
+            const { count } = await supabase
+              .from('post_reactions')
+              .select('id', { count: 'exact', head: true })
+              .eq('reaction_type', 'like')
+              .in('post_id', postIds);
+            likesCount = count || 0;
+          }
 
           setProfile({
             ...data,
-            likes_count: likesRes.count || 0,
+            likes_count: likesCount,
             referrals_count: referralsRes.count || 0,
-            total_stars: starsRes.data?.total_stars || 0
+            total_stars: starsRes.data?.total_stars || 0,
           });
-        } catch (err) {
+        } catch (err: any) {
           console.error('Error fetching profile:', err);
+          // With RLS, a "hidden" profile often looks like "0 rows".
+          const details = String(err?.details || '');
+          const message = String(err?.message || '');
+          if (err?.code === 'PGRST116' || /0 rows/i.test(details) || /0 rows/i.test(message)) {
+            setFetchError('Профиль не найден или скрыт пользователем');
+          } else {
+            setFetchError('Профиль временно недоступен');
+          }
+          setProfile(null);
         } finally {
           setLoading(false);
         }
@@ -106,7 +133,7 @@ export function PublicProfileView({ profile: initialProfile, userId, onBack, onV
 
       fetchProfile();
     }
-  }, [userId, initialProfile]);
+  }, [userId, initialProfile, user]);
 
   const isOwnProfile = user?.id === profile?.user_id;
 
@@ -126,7 +153,7 @@ export function PublicProfileView({ profile: initialProfile, userId, onBack, onV
     return (
       <div className="text-center py-12">
         <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium">Профиль не найден</h3>
+        <h3 className="text-lg font-medium">{fetchError || 'Профиль не найден'}</h3>
       </div>
     );
   }

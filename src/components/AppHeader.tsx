@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gift, Trophy, Newspaper, Flame, Aperture, Bell } from 'lucide-react';
+import { Gift, Trophy, Newspaper, Flame, Aperture, Bell, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useStars } from '@/hooks/useStars';
@@ -55,8 +55,8 @@ export function AppHeader() {
               )}
             </div>
 
-            {/* Right: Notifications + News + Focus + Rating + Theme + Invite */}
-            <div className="flex items-center gap-1 sm:gap-2">
+            {/* Right: Notifications + News + Focus + Rating + Theme + Invite - reduced gap by 12.5% */}
+            <div className="flex items-center gap-0.5 sm:gap-1.5">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -75,6 +75,22 @@ export function AppHeader() {
                 </TooltipTrigger>
                 <TooltipContent>
                   Уведомления
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate('/chats')}
+                    className="text-green-500 hover:text-green-600 hover:bg-green-500/10"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Чаты
                 </TooltipContent>
               </Tooltip>
 

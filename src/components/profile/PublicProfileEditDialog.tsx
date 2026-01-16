@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+
 import { AvatarGallery } from './AvatarGallery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -211,10 +212,10 @@ export function PublicProfileEditDialog({
           location: location.trim() || null,
           job_title: jobTitle.trim() || null,
           status_tag: statusTag || null,
-          interests: interests.length > 0 ? interests : null,
           expertise: expertise.trim() || null,
           can_help: canHelp.trim() || null,
           phone: phone.trim() || null,
+          is_public: true, // Always public
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId);
@@ -337,6 +338,13 @@ export function PublicProfileEditDialog({
               />
             </div>
 
+            {/* Profile is always public - info text */}
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <p className="text-xs text-muted-foreground">
+                ℹ️ Публичный профиль виден всем пользователям в рейтинге и по ссылке
+              </p>
+            </div>
+
             {/* Date of Birth */}
             <div className="space-y-2">
               <Label htmlFor="dob">Дата рождения</Label>
@@ -351,6 +359,7 @@ export function PublicProfileEditDialog({
                 />
               </div>
             </div>
+
 
             {/* Location */}
             <div className="space-y-2">

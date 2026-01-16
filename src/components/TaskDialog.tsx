@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { SubtaskList } from '@/components/SubtaskList';
 import { TaskAttachments } from '@/components/TaskAttachments';
 import { TagSelector } from '@/components/TagSelector';
+import { GoalSelector } from '@/components/goals/GoalSelector';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { getNotificationPermissionStatus } from '@/hooks/useTaskReminders';
@@ -46,6 +47,7 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
   const [subtasks, setSubtasks] = useState<SubTask[]>([]);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
   const [notes, setNotes] = useState<string>('');
+  const [goalId, setGoalId] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newTagName, setNewTagName] = useState('');
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -96,6 +98,7 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
       setSubtasks(task.subtasks || []);
       setAttachments(task.attachments || []);
       setNotes(task.notes || '');
+      setGoalId((task as any).goalId || null);
       setShowSubtasks((task.subtasks?.length || 0) > 0);
       setShowAttachments((task.attachments?.length || 0) > 0 || !!task.notes);
     } else {
@@ -114,6 +117,7 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
       setSubtasks([]);
       setAttachments([]);
       setNotes('');
+      setGoalId(null);
       setShowSubtasks(false);
       setShowAttachments(false);
     }
@@ -127,8 +131,9 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
     const allTagIds = [...tagIds, ...commonTagIds];
     onSave({ 
       name: name.trim(), icon, color, dueDate, priority, status, 
-      categoryId, tagIds: allTagIds, recurrence, reminder, subtasks, attachments, notes
-    });
+      categoryId, tagIds: allTagIds, recurrence, reminder, subtasks, attachments, notes,
+      goalId
+    } as any);
     onClose();
   };
 
@@ -247,6 +252,17 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
                 className="bg-background border-border"
               />
             </div>
+
+            {/* Goal Selector */}
+            {user && (
+              <div className="mb-4">
+                <GoalSelector
+                  value={goalId}
+                  onChange={setGoalId}
+                  isRussian={isRussian}
+                />
+              </div>
+            )}
 
             {/* Priority */}
             <div className="mb-4">

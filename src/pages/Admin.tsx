@@ -97,16 +97,30 @@ export default function Admin() {
 
   const isRussian = language === 'ru';
   const [adminChecked, setAdminChecked] = useState(false);
+  const [authLoaded, setAuthLoaded] = useState(false);
 
-  // Check if user is admin - wait for docs to load first
+  // Wait for auth to fully load
   useEffect(() => {
-    if (!docsLoading) {
+    if (user !== undefined) {
+      setAuthLoaded(true);
+    }
+  }, [user]);
+
+  // Check if user is admin - wait for docs to load and auth to complete
+  useEffect(() => {
+    // Don't redirect until both auth and docs are fully loaded
+    if (!docsLoading && authLoaded) {
       setAdminChecked(true);
-      if (!isAdmin) {
+      // Only redirect if we know user is NOT admin (after everything is loaded)
+      if (!isAdmin && user) {
+        // User is logged in but not admin
         navigate('/');
+      } else if (!user) {
+        // User is not logged in
+        navigate('/auth');
       }
     }
-  }, [isAdmin, docsLoading, navigate]);
+  }, [isAdmin, docsLoading, authLoaded, user, navigate]);
 
   // Fetch stats
   useEffect(() => {
@@ -278,7 +292,7 @@ export default function Admin() {
     }
   };
 
-  if (docsLoading || !adminChecked) {
+  if (docsLoading || !adminChecked || !authLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">{t('loading')}</div>
@@ -286,7 +300,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAdmin || !user) {
     return null;
   }
 

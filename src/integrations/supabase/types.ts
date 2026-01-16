@@ -194,6 +194,223 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_contacts: {
+        Row: {
+          contact_info: string | null
+          contact_name: string
+          contact_type: string | null
+          created_at: string
+          goal_id: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_info?: string | null
+          contact_name: string
+          contact_type?: string | null
+          created_at?: string
+          goal_id: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_info?: string | null
+          contact_name?: string
+          contact_type?: string | null
+          created_at?: string
+          goal_id?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_contacts_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          archived_at: string | null
+          budget_goal: number | null
+          color: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          progress_percent: number | null
+          status: string | null
+          target_date: string | null
+          time_goal_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          budget_goal?: number | null
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          progress_percent?: number | null
+          status?: string | null
+          target_date?: string | null
+          time_goal_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          budget_goal?: number | null
+          color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          progress_percent?: number | null
+          status?: string | null
+          target_date?: string | null
+          time_goal_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      group_chat_members: {
+        Row: {
+          chat_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_members_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_chat_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          reply_to_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "group_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_chats: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          invite_code: string | null
+          is_public: boolean | null
+          max_members: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          invite_code?: string | null
+          is_public?: boolean | null
+          max_members?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          invite_code?: string | null
+          is_public?: boolean | null
+          max_members?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       habits: {
         Row: {
           archived_at: string | null
@@ -201,6 +418,7 @@ export type Database = {
           color: string | null
           completed_dates: string[]
           created_at: string
+          goal_id: string | null
           icon: string | null
           id: string
           name: string
@@ -218,6 +436,7 @@ export type Database = {
           color?: string | null
           completed_dates?: string[]
           created_at?: string
+          goal_id?: string | null
           icon?: string | null
           id?: string
           name: string
@@ -235,6 +454,7 @@ export type Database = {
           color?: string | null
           completed_dates?: string[]
           created_at?: string
+          goal_id?: string | null
           icon?: string | null
           id?: string
           name?: string
@@ -246,7 +466,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "habits_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       idea_votes: {
         Row: {
@@ -1093,6 +1321,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           due_time: string | null
+          goal_id: string | null
           icon: string | null
           id: string
           name: string
@@ -1115,6 +1344,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           due_time?: string | null
+          goal_id?: string | null
           icon?: string | null
           id?: string
           name: string
@@ -1137,6 +1367,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           due_time?: string | null
+          goal_id?: string | null
           icon?: string | null
           id?: string
           name?: string
@@ -1150,7 +1381,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       time_entries: {
         Row: {
@@ -1158,6 +1397,7 @@ export type Database = {
           description: string | null
           duration: number
           end_time: string
+          goal_id: string | null
           id: string
           start_time: string
           subtask_id: string | null
@@ -1170,6 +1410,7 @@ export type Database = {
           description?: string | null
           duration: number
           end_time: string
+          goal_id?: string | null
           id?: string
           start_time: string
           subtask_id?: string | null
@@ -1182,6 +1423,7 @@ export type Database = {
           description?: string | null
           duration?: number
           end_time?: string
+          goal_id?: string | null
           id?: string
           start_time?: string
           subtask_id?: string | null
@@ -1189,7 +1431,15 @@ export type Database = {
           task_name?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -1198,6 +1448,7 @@ export type Database = {
           completed: boolean
           created_at: string
           date: string
+          goal_id: string | null
           id: string
           name: string
           recurrence: string | null
@@ -1212,6 +1463,7 @@ export type Database = {
           completed?: boolean
           created_at?: string
           date: string
+          goal_id?: string | null
           id?: string
           name: string
           recurrence?: string | null
@@ -1226,12 +1478,48 @@ export type Database = {
           completed?: boolean
           created_at?: string
           date?: string
+          goal_id?: string | null
           id?: string
           name?: string
           recurrence?: string | null
           tags?: string[] | null
           type?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_key: string
+          achievement_type: string
+          earned_at: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -1586,6 +1874,7 @@ export type Database = {
         Args: { referrer_user_id: string }
         Returns: Record<string, unknown>
       }
+      generate_invite_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

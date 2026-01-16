@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Settings, Trophy, Users, Crown, Lock, LogIn, Info, Archive } from 'lucide-react';
+import { User, Settings, Trophy, Users, Crown, Lock, LogIn, Info, Archive, BarChart3 } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -153,6 +153,16 @@ export default function Profile() {
             delay={0.3}
           />
 
+          {/* Statistics tile */}
+          <ProfileTile
+            icon={<BarChart3 className="w-6 h-6 text-white" />}
+            title={isRussian ? 'Статистика' : 'Statistics'}
+            subtitle={isRussian ? 'Аналитика и прогресс' : 'Analytics & progress'}
+            gradient="from-indigo-500 to-violet-500"
+            onClick={() => navigate('/statistics')}
+            delay={0.4}
+          />
+
           {/* Archive tile - PRO only */}
           {user && isProActive && (
             <ProfileTile
@@ -161,7 +171,7 @@ export default function Profile() {
               subtitle={isRussian ? 'История привычек и задач' : 'Habits & tasks history'}
               gradient="from-slate-600 to-slate-500"
               onClick={() => navigate('/archive')}
-              delay={0.4}
+              delay={0.5}
             />
           )}
         </div>

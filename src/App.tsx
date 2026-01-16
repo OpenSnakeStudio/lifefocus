@@ -19,6 +19,8 @@ import Services from "./pages/Services";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
 import ProfileSettings from "./pages/ProfileSettings";
+import PublicProfilePreview from "./pages/PublicProfilePreview";
+import UserCatalog from "./pages/UserCatalog";
 import Achievements from "./pages/Achievements";
 import PartnerProgram from "./pages/PartnerProgram";
 import AboutApp from "./pages/AboutApp";
@@ -34,6 +36,9 @@ import Archive from "./pages/Archive";
 import Focus from "./pages/Focus";
 import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
+import GroupChats from "./pages/GroupChats";
+import Goals from "./pages/Goals";
+import GoalDetail from "./pages/GoalDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,6 +109,8 @@ const AppContent = () => {
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/settings" element={<ProfileSettings />} />
+        <Route path="/profile/public" element={<PublicProfilePreview />} />
+        <Route path="/users" element={<UserCatalog />} />
         <Route path="/achievements" element={<Achievements />} />
         <Route path="/partner-program" element={<PartnerProgram />} />
         <Route path="/about" element={<AboutApp />} />
@@ -119,6 +126,10 @@ const AppContent = () => {
         <Route path="/focus" element={<Focus />} />
         <Route path="/user/:userId" element={<UserProfile />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/chats" element={<GroupChats />} />
+        <Route path="/chats/:inviteCode" element={<GroupChats />} />
+        <Route path="/goals" element={<Goals />} />
+        <Route path="/goals/:id" element={<GoalDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <BottomNavigation 

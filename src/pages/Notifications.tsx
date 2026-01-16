@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, CheckCheck, Trash2, Heart, MessageCircle, ThumbsDown, ArrowLeft, Settings, UserPlus, Image } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, Heart, MessageCircle, ThumbsDown, ArrowLeft, Settings, UserPlus, Image, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { useNotifications, UserNotification } from '@/hooks/useNotifications';
@@ -24,6 +24,8 @@ function NotificationIcon({ type }: { type: string }) {
       return <Image className="w-4 h-4 text-primary" />;
     case 'new_follower':
       return <UserPlus className="w-4 h-4 text-green-500" />;
+    case 'new_chat_message':
+      return <MessageSquare className="w-4 h-4 text-green-500" />;
     default:
       return <Bell className="w-4 h-4 text-primary" />;
   }
