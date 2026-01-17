@@ -275,9 +275,9 @@ function SpiderChart({
   onPetalClick: (sphere: Sphere) => void;
   getSphereStats: (sphereId: number) => { taskCount: number; lastActivity: string | null };
 }) {
-  const size = 420;
+  const size = 500;
   const center = size / 2;
-  const maxRadius = 170;
+  const maxRadius = 180;
   const levels = 5;
 
   // Calculate points for radar chart
@@ -293,8 +293,8 @@ function SpiderChart({
         sphere,
         x: center + radius * Math.cos(angleRad),
         y: center + radius * Math.sin(angleRad),
-        labelX: center + (maxRadius + 35) * Math.cos(angleRad),
-        labelY: center + (maxRadius + 35) * Math.sin(angleRad),
+        labelX: center + (maxRadius + 45) * Math.cos(angleRad),
+        labelY: center + (maxRadius + 45) * Math.sin(angleRad),
         index: indexValue,
         angle,
         hsl: hexToHsl(sphere.color),
@@ -388,7 +388,7 @@ function SpiderChart({
                   <motion.circle
                     cx={point.x}
                     cy={point.y}
-                    r={8}
+                    r={10}
                     fill={point.sphere.color}
                     stroke="white"
                     strokeWidth="2"
@@ -428,7 +428,7 @@ function SpiderChart({
           );
         })}
 
-        {/* Labels */}
+        {/* Labels - increased font size */}
         {points.map((point) => (
           <text
             key={`label-${point.sphere.id}`}
@@ -436,10 +436,11 @@ function SpiderChart({
             y={point.labelY}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="10"
-            className="fill-foreground/70 pointer-events-none"
+            fontSize="13"
+            fontWeight="500"
+            className="fill-foreground/80 pointer-events-none"
           >
-            {getSphereName(point.sphere, language).slice(0, 6)}
+            {getSphereName(point.sphere, language)}
           </text>
         ))}
 
@@ -447,7 +448,7 @@ function SpiderChart({
         <circle
           cx={center}
           cy={center}
-          r={35}
+          r={40}
           fill="hsl(var(--card))"
           stroke="hsl(var(--border))"
           strokeWidth="2"
@@ -457,7 +458,7 @@ function SpiderChart({
           y={center - 3}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="24"
+          fontSize="28"
           fontWeight="bold"
           className="fill-foreground"
         >
@@ -465,10 +466,10 @@ function SpiderChart({
         </text>
         <text
           x={center}
-          y={center + 14}
+          y={center + 16}
           textAnchor="middle"
           dominantBaseline="middle"
-          fontSize="9"
+          fontSize="10"
           className="fill-muted-foreground"
         >
           {language === 'ru' ? 'из 10' : language === 'es' ? 'de 10' : 'of 10'}
@@ -504,11 +505,12 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
   }, [sphereIndices, socialSpheres]);
 
   // SVG dimensions - full width for larger display
-  const size = 420;
+  const size = 500;
   const center = size / 2;
-  const maxRadius = 175;
-  const minRadius = 30;
-  const centerRadius = 50;
+  const maxRadius = 190;
+  const minRadius = 35;
+  const centerRadius = 55;
+  const labelRadius = maxRadius + 40; // For external labels
 
   const handlePetalClick = (sphere: Sphere) => {
     navigate(`/sphere/${sphere.key}`);
@@ -552,7 +554,7 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
     return { taskCount, lastActivity };
   };
 
-  // Create rounded triangle petal path - with more rounded corners and smaller gaps
+  // Create rounded triangle petal path - with very rounded corners and minimal gaps
   const createPetalPath = (
     angle: number,
     radius: number
@@ -560,11 +562,11 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
     const angleRad = (angle * Math.PI) / 180;
     
     // Base starts near center - narrow at center
-    const baseR = centerRadius + 8;
-    const baseWidth = 14; // Wider base for smaller gaps
+    const baseR = centerRadius + 10;
+    const baseWidth = 18; // Even wider base for minimal gaps
     
     // Tip is wide and rounded
-    const tipWidth = 38 + (radius / maxRadius) * 20; // Wider tips
+    const tipWidth = 48 + (radius / maxRadius) * 25; // Wider tips for minimal gaps
     
     // Perpendicular angle for width calculations
     const perpAngleRad = ((angle + 90) * Math.PI) / 180;
@@ -584,9 +586,9 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
     const tip2X = tipCenterX + tipWidth * Math.cos(perpAngleRadNeg);
     const tip2Y = tipCenterY + tipWidth * Math.sin(perpAngleRadNeg);
     
-    // Control points for smooth curved sides (more curvature for rounding)
-    const ctrl1Radius = baseR + (radius - baseR) * 0.4;
-    const ctrl1Width = baseWidth + (tipWidth - baseWidth) * 0.3;
+    // Control points for smooth curved sides (more curvature for very rounded effect)
+    const ctrl1Radius = baseR + (radius - baseR) * 0.35;
+    const ctrl1Width = baseWidth + (tipWidth - baseWidth) * 0.25;
     const ctrl1X = center + ctrl1Radius * Math.cos(angleRad) + ctrl1Width * Math.cos(perpAngleRad);
     const ctrl1Y = center + ctrl1Radius * Math.sin(angleRad) + ctrl1Width * Math.sin(perpAngleRad);
     const ctrl2X = center + ctrl1Radius * Math.cos(angleRad) + ctrl1Width * Math.cos(perpAngleRadNeg);
@@ -594,14 +596,14 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
     
     // Second control points closer to tip
     const ctrl3Radius = baseR + (radius - baseR) * 0.7;
-    const ctrl3Width = baseWidth + (tipWidth - baseWidth) * 0.7;
+    const ctrl3Width = baseWidth + (tipWidth - baseWidth) * 0.75;
     const ctrl3X = center + ctrl3Radius * Math.cos(angleRad) + ctrl3Width * Math.cos(perpAngleRad);
     const ctrl3Y = center + ctrl3Radius * Math.sin(angleRad) + ctrl3Width * Math.sin(perpAngleRad);
     const ctrl4X = center + ctrl3Radius * Math.cos(angleRad) + ctrl3Width * Math.cos(perpAngleRadNeg);
     const ctrl4Y = center + ctrl3Radius * Math.sin(angleRad) + ctrl3Width * Math.sin(perpAngleRadNeg);
     
-    // Rounded tip arc control point (more pronounced rounding)
-    const tipOuterR = radius + 18;
+    // Rounded tip arc control point (very pronounced rounding)
+    const tipOuterR = radius + 25;
     const tipOuterX = center + tipOuterR * Math.cos(angleRad);
     const tipOuterY = center + tipOuterR * Math.sin(angleRad);
     
@@ -631,6 +633,8 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
       tipY: number;
       maxTipX: number;
       maxTipY: number;
+      labelX: number;
+      labelY: number;
       hsl: { h: number; s: number; l: number };
       needsPulse: boolean;
       colors: ReturnType<typeof colorSchemes['default']>;
@@ -656,10 +660,12 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
         index: indexValue,
         angle,
         radius,
-        tipX: center + (radius - 18) * Math.cos(angleRad),
-        tipY: center + (radius - 18) * Math.sin(angleRad),
-        maxTipX: center + (maxRadius - 18) * Math.cos(angleRad),
-        maxTipY: center + (maxRadius - 18) * Math.sin(angleRad),
+        tipX: center + (radius - 20) * Math.cos(angleRad),
+        tipY: center + (radius - 20) * Math.sin(angleRad),
+        maxTipX: center + (maxRadius - 20) * Math.cos(angleRad),
+        maxTipY: center + (maxRadius - 20) * Math.sin(angleRad),
+        labelX: center + labelRadius * Math.cos(angleRad),
+        labelY: center + labelRadius * Math.sin(angleRad),
         hsl,
         needsPulse: indexValue < 30,
         colors,
@@ -667,7 +673,7 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
     });
 
     return result;
-  }, [sphereIndices, allSpheres, colorScheme]);
+  }, [sphereIndices, allSpheres, colorScheme, labelRadius]);
 
   const getTooltipContent = (petal: typeof petals[0]) => {
     const stats = getSphereStats(petal.sphere.id);
@@ -787,9 +793,9 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
         />
       ) : (
         <TooltipProvider delayDuration={200}>
-          <div className="px-2">
+          <div className="px-0">
             <svg 
-              viewBox={`0 0 ${size} ${size}`} 
+              viewBox={`-60 -40 ${size + 120} ${size + 60}`} 
               className="w-full h-auto"
               style={{ overflow: 'visible' }}
             >
@@ -939,18 +945,6 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
                       >
                         {Math.round(petal.index / 10)}
                       </text>
-                      
-                      {/* Sphere name below index */}
-                      <text
-                        x={petal.tipX}
-                        y={petal.tipY + 14}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fontSize="9"
-                        className="fill-foreground/80 pointer-events-none"
-                      >
-                        {getSphereName(petal.sphere, language).slice(0, 8)}
-                      </text>
                     </motion.g>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="bg-popover border-border shadow-lg">
@@ -959,6 +953,22 @@ export function BalanceFlower({ sphereIndices, lifeIndex }: BalanceFlowerProps) 
                 </Tooltip>
               ))}
               </motion.g>
+
+              {/* External sphere labels around the flower */}
+              {petals.map((petal) => (
+                <text
+                  key={`flower-label-${petal.sphere.id}`}
+                  x={petal.labelX}
+                  y={petal.labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize="12"
+                  fontWeight="500"
+                  className="fill-foreground/70 pointer-events-none"
+                >
+                  {getSphereName(petal.sphere, language)}
+                </text>
+              ))}
 
               {/* Pulsating center ring */}
               <motion.circle
