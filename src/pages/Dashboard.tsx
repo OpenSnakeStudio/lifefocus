@@ -204,7 +204,10 @@ export default function Dashboard() {
         {/* Section: Greeting and Day Quality Ring */}
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{getGreeting()}, {userName}!</h1>
+            <div>
+              <p className="text-lg text-muted-foreground">{getGreeting()},</p>
+              <h1 className="text-2xl font-bold text-foreground">{userName}!</h1>
+            </div>
             <p className="text-sm text-muted-foreground capitalize">{formattedDate}</p>
           </div>
           <ActivityRings 
