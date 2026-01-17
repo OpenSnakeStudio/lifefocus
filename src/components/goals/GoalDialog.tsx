@@ -62,8 +62,7 @@ export function GoalDialog({ open, onOpenChange, onSave, initialData }: GoalDial
       sphere_id: sphereId,
       status: 'active',
     });
-
-    onOpenChange(false);
+    // Dialog will be closed by parent after successful save
   };
 
   return (
