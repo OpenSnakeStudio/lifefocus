@@ -1,7 +1,6 @@
 // Life Focus Module: Sphere Types and Constants
 
 export type SphereKey = 
-  | 'uncategorized'
   | 'body' 
   | 'mind' 
   | 'spirit' 
@@ -73,17 +72,6 @@ export interface ContactGoal {
 
 // Static sphere data (matches database)
 export const SPHERES: Sphere[] = [
-  {
-    id: 0,
-    key: 'uncategorized',
-    name_ru: 'Разное',
-    name_en: 'Uncategorized',
-    name_es: 'Sin categoría',
-    group_type: 'system',
-    color: 'hsl(220, 15%, 50%)',
-    icon: '📦',
-    sort_order: 0,
-  },
   {
     id: 1,
     key: 'body',

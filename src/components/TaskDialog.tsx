@@ -132,6 +132,8 @@ export function TaskDialog({ open, onClose, onSave, task, categories, tags, onAd
 
   const handleSave = () => {
     if (!name.trim()) return;
+    // Require sphere for authenticated users
+    if (user && !sphereId) return;
     const reminder: TaskReminder | undefined = reminderEnabled 
       ? { enabled: true, time: reminderTime }
       : undefined;
