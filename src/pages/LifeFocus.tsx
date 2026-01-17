@@ -5,7 +5,7 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { BalanceFlower } from '@/components/spheres/BalanceFlower';
-import { EnergyGauge } from '@/components/spheres/EnergyGauge';
+
 import { MindfulnessMetric } from '@/components/spheres/MindfulnessMetric';
 import { useSpheres } from '@/hooks/useSpheres';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -159,33 +159,16 @@ export default function LifeFocus() {
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        {/* Balance Flower with Gauges */}
-        <Card className="p-6">
-          <p className="text-sm text-muted-foreground text-center mb-4">
+        {/* Balance Flower - Full Width */}
+        <Card className="p-4">
+          <p className="text-sm text-muted-foreground text-center mb-2">
             {labels.subtitle[language]}
           </p>
           
-          <div className="flex items-center justify-between gap-4">
-            {/* Left Gauge - Personal Energy */}
-            <EnergyGauge 
-              value={data?.personalEnergy || 0} 
-              type="personal" 
-            />
-            
-            {/* Center - Balance Flower */}
-            <div className="flex-1">
-              <BalanceFlower 
-                sphereIndices={data?.sphereIndices || []}
-                lifeIndex={data?.lifeIndex || 0}
-              />
-            </div>
-            
-            {/* Right Gauge - External Success */}
-            <EnergyGauge 
-              value={data?.externalSuccess || 0} 
-              type="social" 
-            />
-          </div>
+          <BalanceFlower 
+            sphereIndices={data?.sphereIndices || []}
+            lifeIndex={data?.lifeIndex || 0}
+          />
         </Card>
 
         {/* Mindfulness Metric */}
