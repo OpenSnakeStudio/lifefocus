@@ -69,19 +69,38 @@ export default function Dashboard() {
     return tasks.filter(t => t.dueDate === todayStr && !t.archivedAt);
   }, [tasks]);
 
-  // Habits for today
-  const todayHabits = habits.filter((h) => h.targetDays.includes(dayOfWeek) && !h.archivedAt);
-  const completedHabits = todayHabits.filter((h) => h.completedDates.includes(today));
+  // Habits for today - memoized to prevent re-renders
+  const todayHabits = useMemo(() => 
+    habits.filter((h) => h.targetDays.includes(dayOfWeek) && !h.archivedAt),
+    [habits, dayOfWeek]
+  );
+  
+  const completedHabits = useMemo(() => 
+    todayHabits.filter((h) => h.completedDates.includes(today)),
+    [todayHabits, today]
+  );
 
-  const completedTasks = todayTasks.filter((t) => t.completed);
+  const completedTasks = useMemo(() => 
+    todayTasks.filter((t) => t.completed),
+    [todayTasks]
+  );
 
-  // Transactions for today
-  const todayTransactions = getTodayTransactions();
-  const completedTransactions = todayTransactions.filter((t) => t.completed);
+  // Transactions for today - memoized
+  const todayTransactions = useMemo(() => 
+    getTodayTransactions(),
+    [getTodayTransactions]
+  );
+  
+  const completedTransactions = useMemo(() => 
+    todayTransactions.filter((t) => t.completed),
+    [todayTransactions]
+  );
 
-  // Calculate today's income and expense
-  const todayIncome = todayTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
-  const todayExpense = todayTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
+  // Calculate today's income and expense - memoized
+  const { todayIncome, todayExpense } = useMemo(() => ({
+    todayIncome: todayTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0),
+    todayExpense: todayTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0)
+  }), [todayTransactions]);
 
   // Calculate overdue items
   const overdueStats = useMemo(() => {
