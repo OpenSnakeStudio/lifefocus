@@ -38,12 +38,9 @@ export function SphereSelector({
   };
 
   const displayLabel = label || defaultLabels[language];
-  const isUncategorized = value === 0;
-
-  // Group spheres for display
+  // Group spheres for display - exclude system spheres (uncategorized removed)
   const personalSpheres = SPHERES.filter(s => s.group_type === 'personal');
   const socialSpheres = SPHERES.filter(s => s.group_type === 'social');
-  const systemSpheres = SPHERES.filter(s => s.group_type === 'system');
 
   const renderSphereItem = (sphere: Sphere) => (
     <SelectItem key={sphere.id} value={String(sphere.id)}>
@@ -63,12 +60,12 @@ export function SphereSelector({
       <Label 
         className={cn(
           "flex items-center gap-2",
-          isUncategorized && showWarning && "text-amber-600 dark:text-amber-400"
+          !value && showWarning && "text-amber-600 dark:text-amber-400"
         )}
       >
         {displayLabel}
         {required && <span className="text-destructive">*</span>}
-        {isUncategorized && showWarning && (
+        {!value && showWarning && (
           <AlertTriangle className="w-4 h-4" />
         )}
       </Label>
@@ -80,21 +77,16 @@ export function SphereSelector({
       >
         <SelectTrigger 
           className={cn(
-            isUncategorized && showWarning && "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
+            !value && showWarning && "border-amber-500 bg-amber-50 dark:bg-amber-950/20"
           )}
         >
           <SelectValue placeholder={language === 'ru' ? 'Выберите сферу' : 'Select sphere'} />
         </SelectTrigger>
         <SelectContent>
-          {/* System (Uncategorized) */}
-          {systemSpheres.map(renderSphereItem)}
-          
-          {/* Separator */}
+          {/* Personal spheres */}
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
             {language === 'ru' ? 'Личное' : language === 'es' ? 'Personal' : 'Personal'}
           </div>
-          
-          {/* Personal spheres */}
           {personalSpheres.map(renderSphereItem)}
           
           {/* Separator */}
@@ -107,13 +99,13 @@ export function SphereSelector({
         </SelectContent>
       </Select>
       
-      {isUncategorized && showWarning && (
+      {!value && showWarning && (
         <p className="text-xs text-amber-600 dark:text-amber-400">
           {language === 'ru' 
-            ? 'Рекомендуем выбрать одну из 8 сфер жизни'
+            ? 'Выбор сферы жизни обязателен'
             : language === 'es'
-            ? 'Recomendamos elegir una de las 8 esferas de vida'
-            : 'We recommend choosing one of the 8 life spheres'}
+            ? 'La selección de esfera es obligatoria'
+            : 'Sphere selection is required'}
         </p>
       )}
     </div>

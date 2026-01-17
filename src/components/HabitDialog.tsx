@@ -41,6 +41,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
   const [icon, setIcon] = useState(HABIT_ICONS[0]);
   const [color, setColor] = useState(HABIT_COLORS[0]);
   const [targetDays, setTargetDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [targetRepsPerDay, setTargetRepsPerDay] = useState(1);
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [commonTagIds, setCommonTagIds] = useState<string[]>([]);
@@ -59,13 +60,14 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       setIcon(habit.icon);
       setColor(habit.color);
       setTargetDays(habit.targetDays);
+      setTargetRepsPerDay(habit.targetRepsPerDay || 1);
       setCategoryId(habit.categoryId);
       const localTagIdSet = new Set(tags.map(t => t.id));
       setTagIds((habit.tagIds || []).filter(id => localTagIdSet.has(id)));
       setCommonTagIds((habit.tagIds || []).filter(id => !localTagIdSet.has(id)));
-      setGoalId((habit as any).goalId || null);
-      setSphereId((habit as any).sphereId ?? null);
-      setSphereLockedByGoal(!!(habit as any).goalId);
+      setGoalId(habit.goalId || null);
+      setSphereId(habit.sphereId ?? null);
+      setSphereLockedByGoal(!!habit.goalId);
       setPeriodType(habit.period?.type || 'none');
       if (habit.period?.startDate) setCustomStartDate(habit.period.startDate);
       if (habit.period?.endDate) setCustomEndDate(habit.period.endDate);
@@ -74,6 +76,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       setIcon(HABIT_ICONS[0]);
       setColor(HABIT_COLORS[0]);
       setTargetDays([1, 2, 3, 4, 5]);
+      setTargetRepsPerDay(1);
       setCategoryId(undefined);
       setTagIds([]);
       setCommonTagIds([]);
@@ -88,6 +91,8 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
 
   const handleSave = () => {
     if (!name.trim()) return;
+    // Require sphere selection for authenticated users
+    if (user && !sphereId) return;
     
     let period: HabitPeriod | undefined;
     if (periodType !== 'none') {
@@ -106,6 +111,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
       color,
       frequency: 'weekly',
       targetDays,
+      targetRepsPerDay,
       categoryId,
       tagIds: allTagIds,
       period,
@@ -325,14 +331,15 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
                 </div>
               )}
 
-              {/* Sphere Selector */}
+              {/* Sphere Selector - Required for authenticated users */}
               {user && (
                 <div className="space-y-2">
                   <SphereSelector
                     value={sphereId}
                     onChange={setSphereId}
                     disabled={sphereLockedByGoal}
-                    showWarning={!sphereId && sphereId !== 0}
+                    showWarning={!sphereId}
+                    required
                   />
                   {sphereLockedByGoal && (
                     <p className="text-xs text-muted-foreground">
@@ -341,6 +348,45 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
                   )}
                 </div>
               )}
+
+              {/* Daily Repetitions */}
+              <div className="space-y-2">
+                <Label>{isRussian ? 'Повторений в день' : 'Repetitions per day'}</Label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTargetRepsPerDay(Math.max(1, targetRepsPerDay - 1))}
+                    className="w-10 h-10 rounded-xl bg-secondary text-foreground font-semibold hover:bg-muted transition-colors"
+                  >
+                    −
+                  </button>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={99}
+                    value={targetRepsPerDay}
+                    onChange={(e) => setTargetRepsPerDay(Math.max(1, Math.min(99, parseInt(e.target.value) || 1)))}
+                    className="w-20 text-center h-10 text-lg font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setTargetRepsPerDay(Math.min(99, targetRepsPerDay + 1))}
+                    className="w-10 h-10 rounded-xl bg-secondary text-foreground font-semibold hover:bg-muted transition-colors"
+                  >
+                    +
+                  </button>
+                  <span className="text-sm text-muted-foreground">
+                    {isRussian ? 'раз' : 'times'}
+                  </span>
+                </div>
+                {targetRepsPerDay > 1 && (
+                  <p className="text-xs text-muted-foreground">
+                    {isRussian 
+                      ? 'Для 100% выполнения нужно выполнить все повторы за день'
+                      : 'All repetitions must be completed for 100% completion'}
+                  </p>
+                )}
+              </div>
 
               {/* Icon */}
               <div className="space-y-2">
@@ -402,7 +448,7 @@ export function HabitDialog({ open, onClose, onSave, habit, categories, tags }: 
               {/* Save button */}
               <Button
                 onClick={handleSave}
-                disabled={!name.trim() || targetDays.length === 0}
+                disabled={!name.trim() || targetDays.length === 0 || (user && !sphereId)}
                 className="w-full h-14 text-base font-semibold gradient-primary text-primary-foreground"
               >
                 {habit ? t('save') : t('createHabit')}

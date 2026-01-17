@@ -68,6 +68,8 @@ export function TransactionDialog({ open, onClose, onSave, transaction, categori
 
   const handleSave = () => {
     if (!name.trim() || !amount) return;
+    // Require sphere for authenticated users
+    if (user && !sphereId) return;
     const allTagIds = [...tagIds, ...commonTagIds];
     onSave({ 
       name: name.trim(), 
