@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { SphereIndex } from '@/types/sphere';
 
 export type SpreadLevel = 'topFocus' | 'stability' | 'balance' | 'tilt' | 'chaos';
@@ -95,15 +95,33 @@ export function getStarsForLevel(level: SpreadLevel): number {
   return 0;
 }
 
+// Create a stable key for comparing sphere indices
+function createSphereKey(sphereIndices: SphereIndex[]): string {
+  return sphereIndices
+    .map(s => `${s.sphereId}:${s.index}`)
+    .sort()
+    .join('|');
+}
+
 export function useBalanceSpread(sphereIndices: SphereIndex[]) {
   const [currentState, setCurrentState] = useState<SpreadState | null>(null);
   const [previousLevel, setPreviousLevel] = useState<SpreadLevel | null>(null);
   const [isNewLevel, setIsNewLevel] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  
+  // Memoize sphere indices key to prevent infinite loops
+  const sphereKey = useMemo(() => createSphereKey(sphereIndices), [sphereIndices]);
+  const prevKeyRef = useRef<string>('');
 
-  // Calculate current spread state
+  // Calculate current spread state - only when content changes
   useEffect(() => {
+    // Skip if the actual content hasn't changed
+    if (prevKeyRef.current === sphereKey) {
+      return;
+    }
+    prevKeyRef.current = sphereKey;
+
     const state = calculateSpread(sphereIndices);
     setCurrentState(state);
 
@@ -131,7 +149,7 @@ export function useBalanceSpread(sphereIndices: SphereIndex[]) {
       localStorage.setItem(STORAGE_KEY, state.level);
       setIsNewLevel(false);
     }
-  }, [sphereIndices]);
+  }, [sphereKey, sphereIndices]);
 
   const dismissModal = useCallback(() => {
     setShowModal(false);

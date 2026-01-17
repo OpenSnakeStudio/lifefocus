@@ -23,6 +23,10 @@ interface SphereStats {
   totalExpense: number;
 }
 
+// Cache the sphere lists at module level to avoid recalculating
+const PERSONAL_SPHERES = getPersonalSpheres();
+const SOCIAL_SPHERES = getSocialSpheres();
+
 export function useSpheres() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -281,7 +285,7 @@ export function useSpheres() {
     fetchLifeIndexData,
     calculateSphereIndex,
     spheres: SPHERES,
-    personalSpheres: getPersonalSpheres(),
-    socialSpheres: getSocialSpheres(),
+    personalSpheres: PERSONAL_SPHERES,
+    socialSpheres: SOCIAL_SPHERES,
   };
 }
