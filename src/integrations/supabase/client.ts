@@ -6,14 +6,26 @@ import type { Database } from './types';
 // In production (Vercel), use the app's origin + proxy path
 // In development, Vite proxy handles it, but SDK still needs full URL
 const getSupabaseUrl = () => {
-  // For production deployment on Vercel, use the current origin with proxy path
-  if (typeof window !== 'undefined' && window.location.origin.includes('lovable.app')) {
-    return `${window.location.origin}/_supabase`;
+  if (typeof window === 'undefined') {
+    return "https://jexrtsyokhegjxnvqjur.supabase.co";
   }
-  if (typeof window !== 'undefined' && window.location.origin.includes('vercel.app')) {
-    return `${window.location.origin}/_supabase`;
+  
+  const origin = window.location.origin;
+  
+  // Only use proxy for deployed Vercel/Lovable apps with valid HTTPS origin
+  if (origin.startsWith('https://')) {
+    // Custom domain
+    if (origin.includes('lifefocus.lovable.app')) {
+      return `${origin}/_supabase`;
+    }
+    // Vercel deployments
+    if (origin.includes('vercel.app')) {
+      return `${origin}/_supabase`;
+    }
   }
-  // For Lovable preview and development, use direct Supabase URL (proxy not available)
+  
+  // For Lovable preview, development, Telegram WebApp, and any other context
+  // use direct Supabase URL
   return "https://jexrtsyokhegjxnvqjur.supabase.co";
 };
 
