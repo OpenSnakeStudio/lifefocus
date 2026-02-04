@@ -1,33 +1,33 @@
 {
+  "version": 2,
   "rewrites": [
     {
-      "source": "/_supabase/:path*",
-      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/:path*"
+      "source": "/_supabase/(.*)",
+      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/$1"
     },
     {
-      "source": "/api/db/auth/:path*",
-      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/auth/v1/:path*"
+      "source": "/api/db/(.*)",
+      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/$1"
     },
     {
-      "source": "/api/db/rest/:path*",
-      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/rest/v1/:path*"
+      "source": "/assets/(.*)",
+      "destination": "/assets/$1"
     },
     {
-      "source": "/api/db/storage/:path*",
-      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/storage/v1/:path*"
+      "source": "/(sw.js|registerSW.js|manifest.webmanifest|pwa-.*.png|vite.svg|favicon.ico)",
+      "destination": "/$1"
     },
     {
-      "source": "/api/db/functions/:path*",
-      "destination": "https://jexrtsyokhegjxnvqjur.supabase.co/functions/v1/:path*"
+      "source": "/((?!assets|api|_supabase).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
     {
-      "source": "/api/db/:path*",
+      "source": "/assets/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "authorization, x-client-info, apikey, content-type, x-app-source" }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ]
